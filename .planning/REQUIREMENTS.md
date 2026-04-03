@@ -131,9 +131,9 @@
 | HND-07 | Phase 2 | Pending |
 | HND-08 | Phase 2 | Pending |
 | HND-09 | Phase 2 | Pending |
-| HND-10 | Phase 3 | Pending |
-| HND-11 | Phase 3 | Pending |
-| HND-12 | Phase 3 | Pending |
+| HND-10 | Phase 2 | Pending |
+| HND-11 | Phase 2 | Pending |
+| HND-12 | Phase 2 | Pending |
 | HND-13 | Phase 3 | Pending |
 | HND-14 | Phase 3 | Pending |
 | HND-15 | Phase 3 | Pending |
@@ -149,4 +149,4 @@
 
 ---
 *Requirements defined: 2026-04-03*
-*Last updated: 2026-04-03 after initial definition*
+*Last updated: 2026-04-03 after roadmap creation (HND-10/11/12 moved to Phase 2 — threat scoring is part of Hound Core, not reporting)*
