@@ -28,7 +28,12 @@ Decimal phases appear between their surrounding integers in numeric order.
   3. Approved variants are written to `variants-[TRADEMARK].txt` in the workspace with `# Category` section headers and a goods/services context header line
   4. `hound_leads_template.py` exists with `[INSERT API KEY]` and `[INSERT VARIANTS FILE]` placeholders, implements rate limiting with progress output, and writes a correctly structured `hound_leads-[TRADEMARK].json`
   5. Trademark Cat confirms the output file path upon completion
-**Plans**: TBD
+**Plans**: 3 plans
+
+Plans:
+- [ ] 01-01-PLAN.md — Test scaffold and .claude/commands/ directory setup (Wave 1)
+- [ ] 01-02-PLAN.md — /trademark-cat slash command with approval loop (Wave 2)
+- [ ] 01-03-PLAN.md — hound_leads_template.py Python SERP template (Wave 2)
 
 ### Phase 2: Trademark Hound Core
 **Goal**: Attorneys can run `/trademark-hound` and receive a filtered, scored set of investigated leads ready for report generation
