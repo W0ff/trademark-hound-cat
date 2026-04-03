@@ -9,20 +9,20 @@
 
 ### Trademark Cat — Intake
 
-- [ ] **CAT-01**: User can invoke `/trademark-cat` and be prompted for the trademark name and company context (website URL or goods/services description)
-- [ ] **CAT-02**: Trademark Cat derives a Negative Constraints (Ignore List) of non-competing industries from the company context (e.g. "Delta Airlines" → exclude dental, plumbing, carpentry)
+- [x] **CAT-01**: User can invoke `/trademark-cat` and be prompted for the trademark name and company context (website URL or goods/services description)
+- [x] **CAT-02**: Trademark Cat derives a Negative Constraints (Ignore List) of non-competing industries from the company context (e.g. "Delta Airlines" → exclude dental, plumbing, carpentry)
 
 ### Trademark Cat — Variant Generation
 
-- [ ] **CAT-03**: Trademark Cat generates ~100 variants across 5 linguistic categories: (1) Phonetic & Orthographic, (2) Compound Suffix-State, (3) Semantic Synonyms, (4) Conceptual Variants, (5) Additional Phonetics/Hybrids
-- [ ] **CAT-04**: Each variant is annotated with its confusion axis (phonetic/visual/conceptual) and a one-sentence rationale
-- [ ] **CAT-05**: Variants are presented to the user grouped by category for review
+- [x] **CAT-03**: Trademark Cat generates ~100 variants across 5 linguistic categories: (1) Phonetic & Orthographic, (2) Compound Suffix-State, (3) Semantic Synonyms, (4) Conceptual Variants, (5) Additional Phonetics/Hybrids
+- [x] **CAT-04**: Each variant is annotated with its confusion axis (phonetic/visual/conceptual) and a one-sentence rationale
+- [x] **CAT-05**: Variants are presented to the user grouped by category for review
 
 ### Trademark Cat — Feedback & Output
 
-- [ ] **CAT-06**: User can provide feedback on the variant list (add, remove, rebalance categories) and Trademark Cat iterates until the user approves
-- [ ] **CAT-07**: Approved variant list is written to `variants-[TRADEMARK NAME].txt` in the workspace (one variant per line, `# Category` section headers)
-- [ ] **CAT-08**: Trademark Cat confirms the output file path upon completion
+- [x] **CAT-06**: User can provide feedback on the variant list (add, remove, rebalance categories) and Trademark Cat iterates until the user approves
+- [x] **CAT-07**: Approved variant list is written to `variants-[TRADEMARK NAME].txt` in the workspace (one variant per line, `# Category` section headers)
+- [x] **CAT-08**: Trademark Cat confirms the output file path upon completion
 
 ### Trademark Hound — Intake & Setup
 
@@ -75,9 +75,9 @@
 
 ### Python Script Template
 
-- [ ] **PY-01**: `hound_leads_template.py` exists in the project with placeholder tokens `[INSERT API KEY]` and `[INSERT VARIANTS FILE]` that are substituted when generating a per-trademark script
-- [ ] **PY-02**: The template includes: variant loading, Serper.dev exact-match search, rate limiting with configurable delay, progress output, and JSON file writing
-- [ ] **PY-03**: The generated JSON (`hound_leads-[TRADEMARK].json`) stores results with fields: `variant`, `title`, `url`, `snippet`, `position`
+- [x] **PY-01**: `hound_leads_template.py` exists in the project with placeholder tokens `[INSERT API KEY]` and `[INSERT VARIANTS FILE]` that are substituted when generating a per-trademark script
+- [x] **PY-02**: The template includes: variant loading, Serper.dev exact-match search, rate limiting with configurable delay, progress output, and JSON file writing
+- [x] **PY-03**: The generated JSON (`hound_leads-[TRADEMARK].json`) stores results with fields: `variant`, `title`, `url`, `snippet`, `position`
 
 ---
 
@@ -111,17 +111,17 @@
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| CAT-01 | Phase 1 | Pending |
-| CAT-02 | Phase 1 | Pending |
-| CAT-03 | Phase 1 | Pending |
-| CAT-04 | Phase 1 | Pending |
-| CAT-05 | Phase 1 | Pending |
-| CAT-06 | Phase 1 | Pending |
-| CAT-07 | Phase 1 | Pending |
-| CAT-08 | Phase 1 | Pending |
-| PY-01 | Phase 1 | Pending |
-| PY-02 | Phase 1 | Pending |
-| PY-03 | Phase 1 | Pending |
+| CAT-01 | Phase 1 | Complete |
+| CAT-02 | Phase 1 | Complete |
+| CAT-03 | Phase 1 | Complete |
+| CAT-04 | Phase 1 | Complete |
+| CAT-05 | Phase 1 | Complete |
+| CAT-06 | Phase 1 | Complete |
+| CAT-07 | Phase 1 | Complete |
+| CAT-08 | Phase 1 | Complete |
+| PY-01 | Phase 1 | Complete |
+| PY-02 | Phase 1 | Complete |
+| PY-03 | Phase 1 | Complete |
 | HND-01 | Phase 2 | Pending |
 | HND-02 | Phase 2 | Pending |
 | HND-03 | Phase 2 | Pending |
