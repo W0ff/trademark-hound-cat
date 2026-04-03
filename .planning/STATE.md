@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: planning
-stopped_at: Completed 01-trademark-cat-contracts 01-01-PLAN.md
-last_updated: "2026-04-03T21:24:28.317Z"
+stopped_at: Completed 01-trademark-cat-contracts 01-03-PLAN.md
+last_updated: "2026-04-03T21:26:41.477Z"
 last_activity: 2026-04-03 — Roadmap created
 progress:
   total_phases: 3
   completed_phases: 0
   total_plans: 3
-  completed_plans: 1
+  completed_plans: 2
   percent: 33
 ---
 
@@ -51,6 +51,7 @@ Progress: [███░░░░░░░] 33%
 
 *Updated after each plan completion*
 | Phase 01-trademark-cat-contracts P01 | 2 | 1 tasks | 2 files |
+| Phase 01-trademark-cat-contracts P03 | 3 | 1 tasks | 1 files |
 
 ## Accumulated Context
 
@@ -65,6 +66,8 @@ Recent decisions affecting current work:
 - [Pre-build]: Safe list as JSON file with atomic writes (portable, no infrastructure)
 - [Phase 01-trademark-cat-contracts]: Python stdlib unittest only (no pytest) — zero external dependencies for test infrastructure
 - [Phase 01-trademark-cat-contracts]: Tests committed RED intentionally for Nyquist compliance — validates tests check real artifacts
+- [Phase 01-trademark-cat-contracts]: Output field 'url' maps from Serper's 'link' field — intentional normalization for downstream consumers
+- [Phase 01-trademark-cat-contracts]: Two-token substitution pattern: hound_leads_template.py committed with literal placeholders; Phase 2 Hound substitutes before execution
 
 ### Pending Todos
 
@@ -78,6 +81,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-04-03T21:24:28.315Z
-Stopped at: Completed 01-trademark-cat-contracts 01-01-PLAN.md
+Last session: 2026-04-03T21:26:41.475Z
+Stopped at: Completed 01-trademark-cat-contracts 01-03-PLAN.md
 Resume file: None
