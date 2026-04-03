@@ -1,0 +1,152 @@
+# Requirements: Trademark Hound + Cat
+
+**Defined:** 2026-04-03
+**Core Value:** Attorneys can run the full pipeline — from trademark intake to prioritized threat report — with zero manual Google searching, and the system gets smarter over time as false positives are flagged to a safe list.
+
+---
+
+## v1 Requirements
+
+### Trademark Cat — Intake
+
+- [ ] **CAT-01**: User can invoke `/trademark-cat` and be prompted for the trademark name and company context (website URL or goods/services description)
+- [ ] **CAT-02**: Trademark Cat derives a Negative Constraints (Ignore List) of non-competing industries from the company context (e.g. "Delta Airlines" → exclude dental, plumbing, carpentry)
+
+### Trademark Cat — Variant Generation
+
+- [ ] **CAT-03**: Trademark Cat generates ~100 variants across 5 linguistic categories: (1) Phonetic & Orthographic, (2) Compound Suffix-State, (3) Semantic Synonyms, (4) Conceptual Variants, (5) Additional Phonetics/Hybrids
+- [ ] **CAT-04**: Each variant is annotated with its confusion axis (phonetic/visual/conceptual) and a one-sentence rationale
+- [ ] **CAT-05**: Variants are presented to the user grouped by category for review
+
+### Trademark Cat — Feedback & Output
+
+- [ ] **CAT-06**: User can provide feedback on the variant list (add, remove, rebalance categories) and Trademark Cat iterates until the user approves
+- [ ] **CAT-07**: Approved variant list is written to `variants-[TRADEMARK NAME].txt` in the workspace (one variant per line, `# Category` section headers)
+- [ ] **CAT-08**: Trademark Cat confirms the output file path upon completion
+
+### Trademark Hound — Intake & Setup
+
+- [ ] **HND-01**: User can invoke `/trademark-hound` and be prompted for trademark name and company context
+- [ ] **HND-02**: Trademark Hound checks for an existing `safelist-[TRADEMARK].json` and loads it if present
+- [ ] **HND-03**: Trademark Hound detects a missing `variants-[TRADEMARK].txt` and routes the user to run `/trademark-cat` first before proceeding
+
+### Trademark Hound — SERP Search
+
+- [ ] **HND-04**: Trademark Hound checks for an existing `hound-SERP-[TRADEMARK].py`; if absent, generates one from `hound_leads_template.py` with `VARIANTS_FILE` set to the correct variants file
+- [ ] **HND-05**: Trademark Hound executes the generated Python script, which queries Serper.dev for each variant (exact-match quoted search) and writes results to `hound_leads-[TRADEMARK].json`
+- [ ] **HND-06**: The SERP script implements rate limiting (delay between requests) and progress reporting (prints variant being searched) to prevent silent failures
+- [ ] **HND-07**: After SERP execution, any leads whose URLs appear in the loaded safe list are filtered out before investigation
+
+### Trademark Hound — Agentic Investigation
+
+- [ ] **HND-08**: Trademark Hound visits each lead URL using the WebFetch tool and assesses three dimensions: (1) Commerciality — is this a for-profit entity? (2) Trademark Usage — is the name used as a brand identifier? (3) Market Overlap — does it target the same audience as the protected mark?
+- [ ] **HND-09**: News articles, Wikipedia pages, dictionaries, and purely informational content are excluded from investigation (not passed to scoring)
+
+### Trademark Hound — Threat Scoring
+
+- [ ] **HND-10**: Each investigated lead is scored using the 8-factor weighted threat matrix with evidence citation required per factor:
+
+  | Factor | Scale | Weight |
+  |--------|-------|--------|
+  | Mark Criticality | 0–3 | ×3 |
+  | Similarity (sight/sound/meaning) | 0–4 | ×3 |
+  | Goods/Services & Channels Overlap | 0–3 | ×3 |
+  | Geography Priority | 0–3 | ×2 |
+  | Evidence of Confusion/Association | 0–2 | ×2 |
+  | Rights Posture (ours vs. theirs) | 0–2 | ×2 |
+  | Counterparty Profile | 0–2 | ×1 |
+  | Enforcement Cost vs. Budget | 0–2 | ×1 |
+
+- [ ] **HND-11**: Risk tiers are applied: High ≥ 15, Medium 10–14, Low < 10
+- [ ] **HND-12**: Leads scoring below 10 (Low risk) are excluded from the report
+
+### Trademark Hound — Report Generation
+
+- [ ] **HND-13**: Trademark Hound writes `HOUND_REPORT_[TRADEMARK]_[YYYY-MM-DD].md` containing only Medium and High risk entries
+- [ ] **HND-14**: Report table includes columns: Date | Trademark/Variant | Entity Name | URL | Industry | Risk Score | Risk Tier | Infringement Analysis | THREAT?
+- [ ] **HND-15**: Report includes a disclaimer stating it is for attorney review only and does not constitute legal advice
+- [ ] **HND-16**: Trademark Hound displays a summary to the user: total leads found, leads filtered by safe list, leads investigated, High/Medium/Low counts, report file path
+
+### Trademark Hound — Safe List Management
+
+- [ ] **HND-17**: When Trademark Hound is run with a previously reviewed report file path, it reads the THREAT? column and adds all entries marked "NO" to `safelist-[TRADEMARK].json`
+- [ ] **HND-18**: The safe list JSON file is written atomically (write to temp file, then rename) to prevent corruption
+- [ ] **HND-19**: Trademark Hound reports how many entries were added to the safe list and how many are now excluded from future runs
+
+### Python Script Template
+
+- [ ] **PY-01**: `hound_leads_template.py` exists in the project with placeholder tokens `[INSERT API KEY]` and `[INSERT VARIANTS FILE]` that are substituted when generating a per-trademark script
+- [ ] **PY-02**: The template includes: variant loading, Serper.dev exact-match search, rate limiting with configurable delay, progress output, and JSON file writing
+- [ ] **PY-03**: The generated JSON (`hound_leads-[TRADEMARK].json`) stores results with fields: `variant`, `title`, `url`, `snippet`, `position`
+
+---
+
+## v2 Requirements
+
+### Enhanced Monitoring
+- **MON-01**: Batch portfolio mode — run Cat + Hound across multiple trademarks from a portfolio file
+- **MON-02**: Report diffing — compare current report against prior run to highlight new threats
+- **MON-03**: Variant count and threshold configuration — allow attorneys to tune category distribution
+
+### Extended Data Sources
+- **EXT-01**: Domain registration monitoring — check if variants are registered as domains
+- **EXT-02**: USPTO registry watch — query TESS for pending applications matching variants
+
+---
+
+## Out of Scope
+
+| Feature | Reason |
+|---------|--------|
+| Automated cease-and-desist generation | Unauthorized practice of law risk; attorney must draft all legal correspondence |
+| Real-time / scheduled monitoring | Infrastructure incompatible with slash command model; periodic manual runs are the target workflow |
+| USPTO / trademark database search | Requires paid API access (TESS); distinct use case from web monitoring |
+| Auto-populating safe list without attorney review | Removes legal judgment from a legal decision; all safe list entries must be attorney-approved |
+| Web UI or mobile app | CLI-first; attorneys use Claude Code in terminal |
+| Multi-user / shared safe list | File-based model is per-matter; sharing requires infrastructure out of scope |
+
+---
+
+## Traceability
+
+| Requirement | Phase | Status |
+|-------------|-------|--------|
+| CAT-01 | Phase 1 | Pending |
+| CAT-02 | Phase 1 | Pending |
+| CAT-03 | Phase 1 | Pending |
+| CAT-04 | Phase 1 | Pending |
+| CAT-05 | Phase 1 | Pending |
+| CAT-06 | Phase 1 | Pending |
+| CAT-07 | Phase 1 | Pending |
+| CAT-08 | Phase 1 | Pending |
+| PY-01 | Phase 1 | Pending |
+| PY-02 | Phase 1 | Pending |
+| PY-03 | Phase 1 | Pending |
+| HND-01 | Phase 2 | Pending |
+| HND-02 | Phase 2 | Pending |
+| HND-03 | Phase 2 | Pending |
+| HND-04 | Phase 2 | Pending |
+| HND-05 | Phase 2 | Pending |
+| HND-06 | Phase 2 | Pending |
+| HND-07 | Phase 2 | Pending |
+| HND-08 | Phase 2 | Pending |
+| HND-09 | Phase 2 | Pending |
+| HND-10 | Phase 3 | Pending |
+| HND-11 | Phase 3 | Pending |
+| HND-12 | Phase 3 | Pending |
+| HND-13 | Phase 3 | Pending |
+| HND-14 | Phase 3 | Pending |
+| HND-15 | Phase 3 | Pending |
+| HND-16 | Phase 3 | Pending |
+| HND-17 | Phase 3 | Pending |
+| HND-18 | Phase 3 | Pending |
+| HND-19 | Phase 3 | Pending |
+
+**Coverage:**
+- v1 requirements: 30 total
+- Mapped to phases: 30
+- Unmapped: 0 ✓
+
+---
+*Requirements defined: 2026-04-03*
+*Last updated: 2026-04-03 after initial definition*
