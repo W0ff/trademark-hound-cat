@@ -62,16 +62,16 @@
 
 ### Trademark Hound — Report Generation
 
-- [ ] **HND-13**: Trademark Hound writes `HOUND_REPORT_[TRADEMARK]_[YYYY-MM-DD].md` containing only Medium and High risk entries
-- [ ] **HND-14**: Report table includes columns: Date | Trademark/Variant | Entity Name | URL | Industry | Risk Score | Risk Tier | Infringement Analysis | THREAT?
-- [ ] **HND-15**: Report includes a disclaimer stating it is for attorney review only and does not constitute legal advice
-- [ ] **HND-16**: Trademark Hound displays a summary to the user: total leads found, leads filtered by safe list, leads investigated, High/Medium/Low counts, report file path
+- [x] **HND-13**: Trademark Hound writes `HOUND_REPORT_[TRADEMARK]_[YYYY-MM-DD].md` containing only Medium and High risk entries
+- [x] **HND-14**: Report table includes columns: Date | Trademark/Variant | Entity Name | URL | Industry | Risk Score | Risk Tier | Infringement Analysis | THREAT?
+- [x] **HND-15**: Report includes a disclaimer stating it is for attorney review only and does not constitute legal advice
+- [x] **HND-16**: Trademark Hound displays a summary to the user: total leads found, leads filtered by safe list, leads investigated, High/Medium/Low counts, report file path
 
 ### Trademark Hound — Safe List Management
 
-- [ ] **HND-17**: When Trademark Hound is run with a previously reviewed report file path, it reads the THREAT? column and adds all entries marked "NO" to `safelist-[TRADEMARK].json`
-- [ ] **HND-18**: The safe list JSON file is written atomically (write to temp file, then rename) to prevent corruption
-- [ ] **HND-19**: Trademark Hound reports how many entries were added to the safe list and how many are now excluded from future runs
+- [x] **HND-17**: When Trademark Hound is run with a previously reviewed report file path, it reads the THREAT? column and adds all entries marked "NO" to `safelist-[TRADEMARK].json`
+- [x] **HND-18**: The safe list JSON file is written atomically (write to temp file, then rename) to prevent corruption
+- [x] **HND-19**: Trademark Hound reports how many entries were added to the safe list and how many are now excluded from future runs
 
 ### Python Script Template
 
@@ -134,13 +134,13 @@
 | HND-10 | Phase 2 | Complete |
 | HND-11 | Phase 2 | Complete |
 | HND-12 | Phase 2 | Complete |
-| HND-13 | Phase 3 | Pending |
-| HND-14 | Phase 3 | Pending |
-| HND-15 | Phase 3 | Pending |
-| HND-16 | Phase 3 | Pending |
-| HND-17 | Phase 3 | Pending |
-| HND-18 | Phase 3 | Pending |
-| HND-19 | Phase 3 | Pending |
+| HND-13 | Phase 3 | Complete |
+| HND-14 | Phase 3 | Complete |
+| HND-15 | Phase 3 | Complete |
+| HND-16 | Phase 3 | Complete |
+| HND-17 | Phase 3 | Complete |
+| HND-18 | Phase 3 | Complete |
+| HND-19 | Phase 3 | Complete |
 
 **Coverage:**
 - v1 requirements: 30 total
