@@ -7,15 +7,29 @@ allowed_tools: ["WebFetch", "Bash", "Read", "Write"]
 
 Parse `$ARGUMENTS` to extract:
 1. The trademark name (first token or first quoted string)
-2. The goods/services description (optional — second quoted string or everything after first token)
-
-If `$ARGUMENTS` is empty or contains only a trademark name with no goods/services description, ask:
-
-> "What goods or services does [TRADEMARK] cover? For example: 'software for project management' or 'retail clothing stores'."
-
-Do not proceed until you have BOTH the trademark name AND a goods/services description.
+2. The second argument (optional — remaining token after the trademark name)
 
 Sanitize the trademark name for filenames: replace spaces with hyphens, convert to lowercase, remove any characters that are not letters, numbers, or hyphens. Store as `sanitized_name`.
+
+**Second-argument detection (re-invocation branch):**
+
+After extracting the trademark name (first token), check whether a second argument is present and matches the pattern `HOUND_REPORT_*.md` (the filename starts with `HOUND_REPORT_` and ends with `.md`), OR the second token is a path to an existing file with that naming pattern.
+
+If a second argument matching this pattern is detected:
+  - Store the report path as `reviewed_report_path`
+  - Set `mode = 'safelist_ingestion'`
+  - Do NOT ask for goods/services description
+  - Skip directly to the **Safelist Ingestion** section below
+  - Do NOT run SERP search, content triage, or scoring
+
+If no second argument (or second argument does not match `HOUND_REPORT_*.md` pattern):
+  - Set `mode = 'investigate'`
+  - Continue with normal intake below
+  - Ask for goods/services if not provided:
+
+    > "What goods or services does [TRADEMARK] cover? For example: 'software for project management' or 'retail clothing stores'."
+
+  - Do not proceed until you have BOTH the trademark name AND a goods/services description.
 
 ---
 
@@ -385,16 +399,64 @@ CRITICAL: Do NOT write any report file in this command. Report generation (HOUND
 
 ---
 
-## Re-invocation: Safelist Ingestion from Reviewed Report
+## Safelist Ingestion (re-invocation mode only)
 
-*This branch executes when a second argument (a report filename) is provided: `/trademark-hound [TRADEMARK] [REPORT_FILE]`.*
+*Execute this section only when `mode = 'safelist_ingestion'`. Skip entirely in normal investigation mode (`mode = 'investigate'`).*
 
-When a reviewed report path is supplied as the second argument:
+**Step SI-1: Verify report file exists**
 
-1. Read the report file using the Read tool.
-2. Identify all leads where the THREAT? column is marked `NO` (case-insensitive).
-3. Extract the URL for each such lead.
-4. Read the current `safelist-[sanitized_name].json` (or start with an empty array if not found).
-5. Merge the NO-marked URLs (no duplicates).
-6. Write atomically: check whether `safelist-[sanitized_name].json.tmp` exists using the Bash tool (`ls safelist-[sanitized_name].json.tmp 2>/dev/null`). If it exists, remove it first (`rm safelist-[sanitized_name].json.tmp`). Then write the merged safelist array to `safelist-[sanitized_name].json.tmp` using the Write tool. Then run `mv safelist-[sanitized_name].json.tmp safelist-[sanitized_name].json` using the Bash tool to atomically replace the live file.
-7. Report: "Safelist updated: [N] URLs added. `safelist-[sanitized_name].json` now contains [M] total entries."
+Use the Read tool to check whether `[reviewed_report_path]` exists.
+
+If it does NOT exist, output:
+> "Report file not found: [reviewed_report_path]. Check the filename and try again."
+Then stop.
+
+Sanitize the trademark name for filenames (same rule as normal intake). Store as `sanitized_name`.
+
+**Step SI-2: Load current safelist**
+
+Check whether `safelist-[sanitized_name].json` exists.
+- If yes: read it, parse as JSON array, store as `current_safelist`
+- If no: set `current_safelist = []`
+
+**Step SI-3: Parse THREAT? column from Attorney Review Table**
+
+Read `[reviewed_report_path]`. Locate the "## Attorney Review Table" section.
+
+For each data row in that table:
+- Extract the THREAT? column value (last column). Trim whitespace. Compare case-insensitively.
+- If THREAT? == "NO": collect the URL from the URL column of that row
+- If THREAT? == "YES": note this URL as retained (count for summary)
+- If THREAT? is blank, "-", "?", or any other value: skip this row (count as unreviewed / blank)
+
+Track:
+- `urls_to_add` = list of URLs where THREAT? == "NO" that are NOT already in `current_safelist`
+- `count_yes` = number of YES rows
+- `count_blank` = number of blank/unreviewed rows
+- `count_already_in_safelist` = URLs where THREAT? == "NO" but URL is already in `current_safelist` (skip silently, do not re-add, do not increment add count)
+
+**Blank THREAT? guard:** Blank, "-", "?", and any value other than "NO" or "YES" are explicitly skipped. These unreviewed entries are NOT added to safelist under any circumstances.
+
+**Step SI-4: Atomic safelist write**
+
+Merge `current_safelist` + `urls_to_add` into a single array (no duplicates — already filtered in SI-3).
+
+Check for orphaned tmp file: use the Bash tool to run `ls safelist-[sanitized_name].json.tmp 2>/dev/null`. If it exists, run `rm safelist-[sanitized_name].json.tmp`.
+
+Write the merged array to `safelist-[sanitized_name].json.tmp` using the Write tool.
+Then run `mv safelist-[sanitized_name].json.tmp safelist-[sanitized_name].json` using the Bash tool to atomically replace the live file.
+
+**Step SI-5: Report outcome (HND-19)**
+
+Output:
+> "=== Safelist Update Complete ===
+> Trademark: [TRADEMARK]
+> Report reviewed: [reviewed_report_path]
+>
+>   Entries marked NO (added to safelist):  [len(urls_to_add)]
+>   Already in safelist (skipped):          [count_already_in_safelist]
+>   Entries marked YES (retained):          [count_yes]
+>   Entries blank / not yet reviewed:       [count_blank]
+>
+>   safelist-[sanitized_name].json now contains [len(merged)] total entries.
+>   These URLs will be excluded from all future /trademark-hound runs."
