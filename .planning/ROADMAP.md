@@ -13,7 +13,7 @@ Two Claude Code slash commands delivering an attorney-grade trademark monitoring
 Decimal phases appear between their surrounding integers in numeric order.
 
 - [x] **Phase 1: Trademark Cat + Contracts** - Interactive variant generation skill, Python SERP template, and all shared file schemas (completed 2026-04-03)
-- [ ] **Phase 2: Trademark Hound Core** - Intake, SERP search execution, agentic browsing, and 8-factor threat scoring
+- [x] **Phase 2: Trademark Hound Core** - Intake, SERP search execution, agentic browsing, and 8-factor threat scoring (completed 2026-04-04)
 - [ ] **Phase 3: Reports, Safe List, and Pipeline Validation** - Dated Markdown report generation, safe list update flow, and end-to-end validation
 
 ## Phase Details
@@ -62,7 +62,13 @@ Plans:
   3. Trademark Hound displays a run summary to the user: total leads found, leads filtered by safe list, leads investigated, High/Medium/Low counts, and report file path
   4. When Trademark Hound is re-invoked with a reviewed report path, it reads the THREAT? column and atomically writes all "NO" entries to `safelist-[TRADEMARK].json`, then reports how many entries were added and how many are now excluded from future runs
   5. Running the full pipeline end-to-end (Cat to Hound to report to safe list update) produces consistent, non-corrupted output files with no orphaned tmp files
-**Plans**: TBD
+**Plans**: 4 plans
+
+Plans:
+- [ ] 03-01-PLAN.md — RED test scaffold for Phase 3 requirements (tests/test_phase3.py) (Wave 1)
+- [ ] 03-02-PLAN.md — Patch /trademark-report: THREAT? column, disclaimer, atomic write; patch /trademark-hound: run summary (Wave 2)
+- [ ] 03-03-PLAN.md — Add re-invocation safelist ingestion branch to /trademark-hound (Wave 3)
+- [ ] 03-04-PLAN.md — Human verification checkpoint: end-to-end pipeline walkthrough (Wave 4)
 
 ## Progress
 
@@ -72,5 +78,5 @@ Phases execute in numeric order: 1 → 2 → 3
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Trademark Cat + Contracts | 3/3 | Complete    | 2026-04-03 |
-| 2. Trademark Hound Core | 2/3 | In Progress|  |
-| 3. Reports, Safe List, and Pipeline Validation | 0/TBD | Not started | - |
+| 2. Trademark Hound Core | 3/3 | Complete    | 2026-04-04 |
+| 3. Reports, Safe List, and Pipeline Validation | 0/4 | Not started | - |
