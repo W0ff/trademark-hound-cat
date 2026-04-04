@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: in-progress
-stopped_at: Completed 03-02-PLAN.md — report format, disclaimer, atomic write, run summary
-last_updated: "2026-04-04T19:44:56.297Z"
+status: completed
+stopped_at: Completed 03-03-PLAN.md — re-invocation branch and Safelist Ingestion (HND-17/18/19)
+last_updated: "2026-04-04T19:48:27.504Z"
 progress:
   total_phases: 3
   completed_phases: 2
   total_plans: 10
-  completed_plans: 8
-  percent: 80
+  completed_plans: 9
+  percent: 90
 ---
 
 # Project State
@@ -25,10 +25,10 @@ See: .planning/PROJECT.md
 ## Current Position
 
 Phase: 3 of 3 in progress
-Plan: 2 of 4 complete (03-02 complete)
-Status: Phase 3 active — 03-02 report format/disclaimer/atomic write done, ready for 03-03
+Plan: 3 of 4 complete (03-03 complete)
+Status: Phase 3 active — 03-03 re-invocation branch and Safelist Ingestion (HND-17/18/19) done, ready for 03-04
 
-Progress: [████████░░] 80%
+Progress: [█████████░] 90%
 
 ## What Was Built (Phases 1–2)
 
@@ -66,6 +66,8 @@ Progress: [████████░░] 80%
 - [Phase 03]: test_hnd13_report_filename_pattern passes GREEN (HOUND_REPORT_ already in trademark-report.md) — kept as non-regression guard
 - [Phase 03]: HND-17 re-invocation test requires dedicated labeled section — footer mention excluded by design
 - [Phase 03]: Re-invocation section added to trademark-hound.md in Plan 02 — HND-18 atomic write test checks hound.md directly; adding full section is forward-compatible with Plan 03
+- [Phase 03]: Re-invocation branch placed in Intake section using mode variable — single intake dispatch point for both modes
+- [Phase 03]: Blank THREAT? guard explicitly enumerates skip values: blank, dash, question mark, any non-YES/NO value
 
 ## Blockers / Open Questions
 
@@ -74,6 +76,6 @@ Progress: [████████░░] 80%
 
 ## Session Continuity
 
-Last session: 2026-04-04T19:44:56.295Z
-Stopped at: Completed 03-02-PLAN.md — report format, disclaimer, atomic write, run summary
+Last session: 2026-04-04T19:48:20.731Z
+Stopped at: Completed 03-03-PLAN.md — re-invocation branch and Safelist Ingestion (HND-17/18/19)
 Resume with: `/gsd:plan-phase 3`
