@@ -1,5 +1,6 @@
 ---
 description: "Investigate trademark infringement leads. Runs SERP search across variants, filters against safelist, investigates each lead via WebFetch, and scores using the 8-factor weighted threat matrix. Use after /trademark-cat has generated a variants file."
+allowed_tools: ["WebFetch", "Bash", "Read", "Write"]
 ---
 
 ## Intake
@@ -108,27 +109,151 @@ Report: "[N] leads after safelist filtering ([M] leads excluded by safelist)"
 Before spending WebFetch calls, apply two-stage triage.
 
 **Stage 1 — URL domain triage (no fetch needed):**
-Exclude a lead without fetching if its URL contains any of these domains:
-  wikipedia.org, wikimedia.org, wiktionary.org
-  dictionary.com, merriam-webster.com, vocabulary.com
-  bbc.co.uk, reuters.com, apnews.com, nytimes.com, wsj.com, theguardian.com, cnn.com, npr.org
+Exclude a lead without fetching if its URL's hostname (stripped of `www.`) matches or is a subdomain of any domain in the following list:
+
+```
+# Encyclopedias / dictionaries / reference
+wikipedia.org, wikimedia.org, wiktionary.org, dictionary.com,
+merriam-webster.com, vocabulary.com, dictzone.com
+
+# News outlets
+bbc.co.uk, reuters.com, apnews.com, nytimes.com, wsj.com,
+theguardian.com, cnn.com, npr.org
+
+# Social media & profiles
+linkedin.com, facebook.com, twitter.com, x.com, instagram.com,
+youtube.com, reddit.com, tiktok.com, pinterest.com,
+soundcloud.com, tumblr.com
+
+# Business directories & company databases
+yelp.com, mapquest.com, yellowpages.com, manta.com, bbb.org,
+rocketreach.co, zoominfo.com, dnb.com, foursquare.com,
+opencorporates.com, bizapedia.com, endole.co.uk,
+find-and-update.company-information.service.gov.uk,
+crunchbase.com, f6s.com, waze.com, topline.com
+
+# People / background-check sites
+cyberbackgroundchecks.com, truthfinder.com, fastbackgroundcheck.com,
+whitepages.com, beenverified.com, spokeo.com, peoplefinders.com
+
+# App stores & app-rating sites
+play.google.com, apps.apple.com, chromewebstore.google.com,
+appbrain.com, aptoide.com, apk.dog
+
+# Stock photo / icon / clip-art
+shutterstock.com, vecteezy.com, freepik.com, alamy.com,
+stock.adobe.com, icons8.com, dreamstime.com, 123rf.com,
+istockphoto.com, gettyimages.com
+
+# E-commerce product listings (non-brand storefronts)
+amazon.com, amazon.co.uk, ebay.com, alibaba.com, aliexpress.com,
+walmart.com, etsy.com, abebooks.com
+
+# Job sites
+indeed.com, glassdoor.com, monster.com, ziprecruiter.com
+
+# Developer documentation
+developer.android.com, developer.mozilla.org, developer.cisco.com,
+developer.codesignal.com, docs.gtk.org, docs.junit.org,
+learn.microsoft.com, javadoc.io, composables.com,
+proandroiddev.com, community.appian.com, mathworks.com,
+doc.akka.io, docs.rs, go.dev, tip.golang.org, pkg.go.dev,
+baeldung.com, webdriver.io, pypi.org, docs.gradle.org,
+angular.dev, harmony.apache.org, docs.testkube.io
+
+# Q&A / forums / dev communities
+stackoverflow.com, quora.com, stackexchange.com, community.unix.com,
+medium.com, scribd.com, juejin.cn, bbs.kafan.cn, askfilo.com,
+forum.getodk.org, groups.google.com, coderanch.com,
+slack-chats.kotlinlang.org
+
+# Academic / research
+jstor.org, dl.acm.org, scirp.org, arxiv.org, sciencedirect.com,
+emerald.com, studocu.com, coursehero.com, researchgate.net
+
+# Government archives / regulatory PDFs
+osha.gov, epa.gov, nepis.epa.gov, apps.fcc.gov, pta.gov.pk,
+nist.gov, fldoe.org, dau.edu
+
+# Patent / trademark search
+patents.google.com, trademarkia.com, justia.com,
+trademark-clearinghouse.com
+
+# Emoji / symbols / fonts / icons
+emojipedia.org, wumbo.net, fontawesome.com
+
+# Code hosting (repo/profile pages — not company product sites)
+github.com, gitlab.com, bitbucket.org
+
+# Auction / collectibles (non-software)
+db.stevealbum.com, sarc.auction
+
+# Gaming / Roblox / Minecraft
+rolimons.com, fandom.com, miraheze.org, minecraft-statistic.net
+
+# Music / entertainment
+spotify.com, open.spotify.com, volt.fm, music.apple.com,
+shazam.com, jiosaavn.com, edmtrain.com, insomniac.com, deviantart.com
+
+# Crypto / blockchain / finance
+coinmarketcap.com, coinswitch.co, binance.com, phantom.com,
+poocoin.app, bitget.com, finance.yahoo.com
+
+# Dutch / German / other-language product & shopping noise
+tweakers.net, coolblue.nl, bol.com, onderdeeltotaal.nl,
+mercateo.com, kedahead.de, weinmann-schanz.de,
+hippeschoentjes.be, simplexcars.be, autobild.de
+
+# Miscellaneous noise
+oil-club.ru, zapodarkom.com.ua, runeberg.org,
+universe.roboflow.com, sourceforge.net, figma.com, discogs.com,
+slideshare.net, tumgik.com, trustpilot.com, getapp.ca,
+softwareworld.co, reviews.llvm.org, mindat.org, yr.no,
+wanderlog.com, irrigation-mart.com, rrproducts.com,
+amacrongolf.com.au, rdmparts.com
+```
 
 Apply domain-level exclusion only. Do NOT exclude based on URL path segments like /blog/ or /article/ — a brand site may have a blog and still be a commercial competitor.
 
 Log each excluded URL: "Excluded [URL]: known informational domain"
 
-**Stage 2 — Content signal triage (for ambiguous URLs):**
-For each remaining lead, fetch the URL using the WebFetch tool.
-If the fetched content primarily shows:
-  - News article structure (bylines, publication date in news format, news navigation)
-  - Encyclopedia-style neutral description with no commercial intent
-  - Dictionary/reference format (Definition:, Etymology:, Synonyms: sections)
-→ Exclude this lead. Log: "Excluded [URL]: informational content signal"
+**Stage 1.5 — Batch URL review (attorney approval gate):**
 
-If the content shows commercial signals (prices, Buy/Shop/Cart buttons, service descriptions, brand identity, contact forms):
-→ Keep for investigation in Step 7.
+Before fetching anything, present all post-Stage-1 leads as a numbered table:
 
-Report: "[N] leads after informational exclusion ([M] excluded in Stage 1, [P] excluded in Stage 2)"
+```
+[N] URLs cleared domain triage. Review before fetching:
+
+ #  | URL                                      | Variant
+----|------------------------------------------|----------
+ 1  | https://example.com/testmark             | Testmark
+ 2  | https://another.io/                      | TestmarkIO
+...
+```
+
+Then ask:
+> "Reply **'proceed'** to fetch all, or list numbers to skip (e.g. '3, 7, 12')."
+
+Wait for the attorney's reply before continuing. Apply any numbered exclusions — log each: `"Skipped [URL]: excluded by attorney at triage review"`. Store the remaining approved leads as the fetch queue.
+
+**Stage 2 — Content signal triage (parallel batch fetch):**
+
+Split the approved fetch queue into batches of 10. Launch each batch as a parallel Agent sub-call, instructing each agent to:
+- Fetch all 10 URLs
+- Return a one-line signal per URL: `"N | SIGNAL | one sentence"` where SIGNAL is one of: `commercial`, `developer-docs`, `academic`, `government`, `informational`, `crypto/finance`, or `error/inaccessible`
+
+Wait for all batches to complete, then apply triage rules to the returned signals:
+
+Exclude if signal is: `developer-docs`, `academic`, `government`, `informational`, `crypto/finance`, `error/inaccessible`
+→ Log: "Excluded [URL]: [signal]"
+
+Keep if signal is: `commercial`
+→ Carry forward to Step 7.
+
+Additional commercial-but-no-overlap check: if the commercial description makes clear the entity operates in a completely unrelated industry (e.g., physical construction equipment, automotive dealerships, bathroom building products) with no plausible consumer overlap with `protected_mark_context`, exclude it.
+→ Log: "Excluded [URL]: commercial but no goods/services overlap"
+
+Report: "[N] leads after informational exclusion ([M] excluded in Stage 1, [P] skipped by attorney, [Q] excluded in Stage 2)"
 
 ---
 
@@ -229,8 +354,47 @@ Report after all leads are processed:
 > "[N] leads scored — High: [X], Medium: [Y], Low: [Z] (dropped)
 > Scored leads written to: hound_scored-[sanitized_name].json"
 
+After writing hound_scored-[sanitized_name].json, display the following run summary block in the conversation:
+
+```
+=== Trademark Hound Run Summary ===
+Trademark: [TRADEMARK]
+Run date: [today's date in YYYY-MM-DD]
+
+  Raw SERP leads:              [N from Step 4 post-SERP count]
+  Excluded by safelist:        [M from Step 5]
+  Excluded by domain triage:   [Stage 1 count from Step 6]
+  Skipped by attorney:         [Stage 1.5 count from Step 6]
+  Excluded by content triage:  [Stage 2 count from Step 6]
+  Scored leads (Med + High):   [count_high + count_medium]
+
+  High (>= 15):                [count_high]
+  Medium (10-14):              [count_medium]
+  Low (< 10, dropped):         [count_low — calculate as investigated_count minus count_high minus count_medium]
+
+Next step: Run `/trademark-report [TRADEMARK]` to generate the attorney report.
+```
+
+Track count_low as a running counter during the scoring loop: increment it each time a lead scores below 10 and is dropped.
+
 This completes the Trademark Hound investigation phase. Run `/trademark-hound` again with a reviewed report path to update the safelist (Phase 3).
 
 ---
 
 CRITICAL: Do NOT write any report file in this command. Report generation (HOUND_REPORT_[TRADEMARK]_[DATE].md) is handled separately. This command's terminal output is hound_scored-[sanitized_name].json.
+
+---
+
+## Re-invocation: Safelist Ingestion from Reviewed Report
+
+*This branch executes when a second argument (a report filename) is provided: `/trademark-hound [TRADEMARK] [REPORT_FILE]`.*
+
+When a reviewed report path is supplied as the second argument:
+
+1. Read the report file using the Read tool.
+2. Identify all leads where the THREAT? column is marked `NO` (case-insensitive).
+3. Extract the URL for each such lead.
+4. Read the current `safelist-[sanitized_name].json` (or start with an empty array if not found).
+5. Merge the NO-marked URLs (no duplicates).
+6. Write atomically: check whether `safelist-[sanitized_name].json.tmp` exists using the Bash tool (`ls safelist-[sanitized_name].json.tmp 2>/dev/null`). If it exists, remove it first (`rm safelist-[sanitized_name].json.tmp`). Then write the merged safelist array to `safelist-[sanitized_name].json.tmp` using the Write tool. Then run `mv safelist-[sanitized_name].json.tmp safelist-[sanitized_name].json` using the Bash tool to atomically replace the live file.
+7. Report: "Safelist updated: [N] URLs added. `safelist-[sanitized_name].json` now contains [M] total entries."

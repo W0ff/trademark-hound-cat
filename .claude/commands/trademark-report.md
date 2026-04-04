@@ -230,7 +230,7 @@ Wait for the attorney's reply.
 
   Read the current `safelist-[sanitized_name].json` (or start with empty array if not found).
   Merge new URLs (no duplicates).
-  Write back to `safelist-[sanitized_name].json`.
+  Before writing, check whether `safelist-[sanitized_name].json.tmp` exists using the Bash tool (`ls safelist-[sanitized_name].json.tmp 2>/dev/null`). If it exists, remove it first (`rm safelist-[sanitized_name].json.tmp`). Then write the merged safelist array to `safelist-[sanitized_name].json.tmp` using the Write tool. Then run `mv safelist-[sanitized_name].json.tmp safelist-[sanitized_name].json` using the Bash tool to atomically replace the live file.
 
   Report:
   > "Safelist updated: [N] URLs added. `safelist-[sanitized_name].json` now contains [M] total entries."
