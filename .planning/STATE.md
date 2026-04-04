@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: planning
-stopped_at: Completed 02-trademark-hound-core 02-01-PLAN.md
-last_updated: "2026-04-04T02:25:14.585Z"
+stopped_at: Completed 02-trademark-hound-core 02-02-PLAN.md
+last_updated: "2026-04-04T02:28:40.195Z"
 last_activity: 2026-04-03 — Roadmap created
 progress:
   total_phases: 3
   completed_phases: 1
   total_plans: 6
-  completed_plans: 4
+  completed_plans: 5
   percent: 33
 ---
 
@@ -54,6 +54,7 @@ Progress: [███░░░░░░░] 33%
 | Phase 01-trademark-cat-contracts P03 | 3 | 1 tasks | 1 files |
 | Phase 01-trademark-cat-contracts P02 | 20min | 2 tasks | 1 files |
 | Phase 02-trademark-hound-core P01 | 5min | 2 tasks | 1 files |
+| Phase 02-trademark-hound-core P02 | 2min | 2 tasks | 1 files |
 
 ## Accumulated Context
 
@@ -73,6 +74,9 @@ Recent decisions affecting current work:
 - [Phase 01-trademark-cat-contracts]: Inline confusion-axis annotations withheld during review loop, written to variants file only after approval — clean UX with preserved rationale
 - [Phase 01-trademark-cat-contracts]: Broad approval intent detection with ambiguity-resolution prompt to avoid false file writes
 - [Phase 02-trademark-hound-core]: HND-06 deliberately excluded from test_phase2.py — already covered by test_phase1.py::test_py02_delay_seconds
+- [Phase 02-trademark-hound-core]: Command ends at hound_scored-[TRADEMARK].json — no HOUND_REPORT written in Phase 2 (clean phase boundary)
+- [Phase 02-trademark-hound-core]: Domain-level exclusion only for informational sites — no path-segment exclusion to avoid false positives on brand sites with blogs
+- [Phase 02-trademark-hound-core]: Score one lead at a time with working-memory release instruction between leads to manage context window pressure
 
 ### Pending Todos
 
@@ -86,6 +90,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-04-04T02:25:14.583Z
-Stopped at: Completed 02-trademark-hound-core 02-01-PLAN.md
+Last session: 2026-04-04T02:28:40.193Z
+Stopped at: Completed 02-trademark-hound-core 02-02-PLAN.md
 Resume file: None
