@@ -26,25 +26,25 @@
 
 ### Trademark Hound — Intake & Setup
 
-- [ ] **HND-01**: User can invoke `/trademark-hound` and be prompted for trademark name and company context
-- [ ] **HND-02**: Trademark Hound checks for an existing `safelist-[TRADEMARK].json` and loads it if present
-- [ ] **HND-03**: Trademark Hound detects a missing `variants-[TRADEMARK].txt` and routes the user to run `/trademark-cat` first before proceeding
+- [x] **HND-01**: User can invoke `/trademark-hound` and be prompted for trademark name and company context
+- [x] **HND-02**: Trademark Hound checks for an existing `safelist-[TRADEMARK].json` and loads it if present
+- [x] **HND-03**: Trademark Hound detects a missing `variants-[TRADEMARK].txt` and routes the user to run `/trademark-cat` first before proceeding
 
 ### Trademark Hound — SERP Search
 
-- [ ] **HND-04**: Trademark Hound checks for an existing `hound-SERP-[TRADEMARK].py`; if absent, generates one from `hound_leads_template.py` with `VARIANTS_FILE` set to the correct variants file
-- [ ] **HND-05**: Trademark Hound executes the generated Python script, which queries Serper.dev for each variant (exact-match quoted search) and writes results to `hound_leads-[TRADEMARK].json`
+- [x] **HND-04**: Trademark Hound checks for an existing `hound-SERP-[TRADEMARK].py`; if absent, generates one from `hound_leads_template.py` with `VARIANTS_FILE` set to the correct variants file
+- [x] **HND-05**: Trademark Hound executes the generated Python script, which queries Serper.dev for each variant (exact-match quoted search) and writes results to `hound_leads-[TRADEMARK].json`
 - [ ] **HND-06**: The SERP script implements rate limiting (delay between requests) and progress reporting (prints variant being searched) to prevent silent failures
-- [ ] **HND-07**: After SERP execution, any leads whose URLs appear in the loaded safe list are filtered out before investigation
+- [x] **HND-07**: After SERP execution, any leads whose URLs appear in the loaded safe list are filtered out before investigation
 
 ### Trademark Hound — Agentic Investigation
 
-- [ ] **HND-08**: Trademark Hound visits each lead URL using the WebFetch tool and assesses three dimensions: (1) Commerciality — is this a for-profit entity? (2) Trademark Usage — is the name used as a brand identifier? (3) Market Overlap — does it target the same audience as the protected mark?
-- [ ] **HND-09**: News articles, Wikipedia pages, dictionaries, and purely informational content are excluded from investigation (not passed to scoring)
+- [x] **HND-08**: Trademark Hound visits each lead URL using the WebFetch tool and assesses three dimensions: (1) Commerciality — is this a for-profit entity? (2) Trademark Usage — is the name used as a brand identifier? (3) Market Overlap — does it target the same audience as the protected mark?
+- [x] **HND-09**: News articles, Wikipedia pages, dictionaries, and purely informational content are excluded from investigation (not passed to scoring)
 
 ### Trademark Hound — Threat Scoring
 
-- [ ] **HND-10**: Each investigated lead is scored using the 8-factor weighted threat matrix with evidence citation required per factor:
+- [x] **HND-10**: Each investigated lead is scored using the 8-factor weighted threat matrix with evidence citation required per factor:
 
   | Factor | Scale | Weight |
   |--------|-------|--------|
@@ -57,8 +57,8 @@
   | Counterparty Profile | 0–2 | ×1 |
   | Enforcement Cost vs. Budget | 0–2 | ×1 |
 
-- [ ] **HND-11**: Risk tiers are applied: High ≥ 15, Medium 10–14, Low < 10
-- [ ] **HND-12**: Leads scoring below 10 (Low risk) are excluded from the report
+- [x] **HND-11**: Risk tiers are applied: High ≥ 15, Medium 10–14, Low < 10
+- [x] **HND-12**: Leads scoring below 10 (Low risk) are excluded from the report
 
 ### Trademark Hound — Report Generation
 
@@ -122,18 +122,18 @@
 | PY-01 | Phase 1 | Complete |
 | PY-02 | Phase 1 | Complete |
 | PY-03 | Phase 1 | Complete |
-| HND-01 | Phase 2 | Pending |
-| HND-02 | Phase 2 | Pending |
-| HND-03 | Phase 2 | Pending |
-| HND-04 | Phase 2 | Pending |
-| HND-05 | Phase 2 | Pending |
+| HND-01 | Phase 2 | Complete |
+| HND-02 | Phase 2 | Complete |
+| HND-03 | Phase 2 | Complete |
+| HND-04 | Phase 2 | Complete |
+| HND-05 | Phase 2 | Complete |
 | HND-06 | Phase 2 | Pending |
-| HND-07 | Phase 2 | Pending |
-| HND-08 | Phase 2 | Pending |
-| HND-09 | Phase 2 | Pending |
-| HND-10 | Phase 2 | Pending |
-| HND-11 | Phase 2 | Pending |
-| HND-12 | Phase 2 | Pending |
+| HND-07 | Phase 2 | Complete |
+| HND-08 | Phase 2 | Complete |
+| HND-09 | Phase 2 | Complete |
+| HND-10 | Phase 2 | Complete |
+| HND-11 | Phase 2 | Complete |
+| HND-12 | Phase 2 | Complete |
 | HND-13 | Phase 3 | Pending |
 | HND-14 | Phase 3 | Pending |
 | HND-15 | Phase 3 | Pending |
