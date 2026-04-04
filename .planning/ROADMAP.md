@@ -45,7 +45,12 @@ Plans:
   3. All leads whose URLs appear in the loaded `safelist-[TRADEMARK].json` are silently excluded before investigation begins
   4. Each remaining lead is visited via WebFetch; news articles, Wikipedia, and informational content are excluded; commercial leads are assessed on commerciality, trademark usage, and market overlap
   5. Each assessed lead receives a score from the 8-factor weighted threat matrix with evidence citations per factor; leads below 10 (Low) are dropped and not surfaced further
-**Plans**: TBD
+**Plans**: 3 plans
+
+Plans:
+- [ ] 02-01-PLAN.md — RED test scaffold for /trademark-hound (tests/test_phase2.py) (Wave 1)
+- [ ] 02-02-PLAN.md — /trademark-hound slash command: full pipeline from intake to hound_scored JSON (Wave 2)
+- [ ] 02-03-PLAN.md — Human verification checkpoint: end-to-end pipeline walkthrough (Wave 3)
 
 ### Phase 3: Reports, Safe List, and Pipeline Validation
 **Goal**: The full pipeline produces a dated, attorney-ready Markdown report and the safe list feedback loop closes correctly, allowing prior false positives to be suppressed on future runs
@@ -67,5 +72,5 @@ Phases execute in numeric order: 1 → 2 → 3
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Trademark Cat + Contracts | 3/3 | Complete    | 2026-04-03 |
-| 2. Trademark Hound Core | 0/TBD | Not started | - |
+| 2. Trademark Hound Core | 0/3 | Not started | - |
 | 3. Reports, Safe List, and Pipeline Validation | 0/TBD | Not started | - |
