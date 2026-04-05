@@ -31,13 +31,38 @@ If no second argument (or second argument does not match `HOUND_REPORT_*.md` pat
 
   - Do not proceed until you have BOTH the trademark name AND a goods/services description.
 
-  - Then ask the following two questions (may be asked together in one message):
+  - Before asking the questions below, peek the safelist for saved preferences:
+    Use the Read tool to check whether `safelist-[sanitized_name].json` exists. If it does, parse it.
+    - If the file is a JSON object with a `preferences` key, extract `saved_criticality`, `saved_geography`, and `skip_confirmation` from `preferences`.
+    - If the file is a flat JSON array (old format) or has no `preferences` key, treat saved preferences as absent.
+
+  - **If saved preferences exist AND `skip_confirmation` is true:**
+    Use the saved values silently. Set `mark_criticality_input = saved_criticality` and `geography_input = saved_geography`.
+    Report: "Using saved preferences — Mark criticality: [N]/3 | Geography: [saved_geography]"
+    Do NOT ask the questions below.
+
+  - **If saved preferences exist AND `skip_confirmation` is false (or absent):**
+    Show the saved values and ask for confirmation in one message:
+    > "Saved preferences for [TRADEMARK]:
+    > - **Mark criticality:** [saved_criticality]/3
+    > - **Geography:** [saved_geography]
+    >
+    > Are these still correct? Reply **'yes'** to confirm, or provide updated values.
+    > To stop being asked this in future, reply **'yes, don't ask again'**."
+
+    - If attorney replies "yes" or "yes, don't ask again": use saved values, set `mark_criticality_input = saved_criticality` and `geography_input = saved_geography`. If "don't ask again", set `skip_confirmation = true` for the preferences write below.
+    - If attorney provides new values: update `mark_criticality_input` and `geography_input` accordingly. Reset `skip_confirmation = false`.
+
+  - **If no saved preferences exist:**
+    Ask the following two questions together in one message:
 
     > "**Mark criticality:** On a scale of 0–3, how critical is this mark to your business? 0 = not critical, 1 = moderately important, 2 = important, 3 = essential to your business."
 
     > "**Geography:** What geographies do you currently operate in or consider most important? You can give a simple list (e.g. 'US, Canada, UK') or a tiered list of jurisdictions (e.g. 'Tier 1: US, EU — Tier 2: Canada, Australia')."
 
-  - Store the answers as `mark_criticality_input` (integer 0–3) and `geography_input` (the attorney's text, preserved verbatim).
+    Set `skip_confirmation = false`.
+
+  - Store the final answers as `mark_criticality_input` (integer 0–3) and `geography_input` (the attorney's text, preserved verbatim).
   - Do not proceed until both values are provided.
 
 ---
@@ -63,13 +88,35 @@ Report: "Variants loaded: [N] variants for [TRADEMARK] | Context: [protected_mar
 Check whether `safelist-[sanitized_name].json` exists.
 
 If it does:
-  Read the file. Parse as JSON. Extract the list of safe URLs.
-  Store as a set: safelist_urls = set of all URL strings in the JSON array.
+  Read the file. Parse as JSON.
+  - If the parsed value is a JSON **array**: treat it as the URL list (old format). Set `safelist_urls` from the array. Set `existing_preferences = null`.
+  - If the parsed value is a JSON **object**: extract `urls` (array) as the URL list, and `preferences` (object) as `existing_preferences`. If either key is missing, treat it as empty.
+  Store as a set: safelist_urls = set of all URL strings in the URL list.
   Report: "Safelist loaded: [N] entries"
 
 If it does not exist:
-  Set safelist_urls = empty set.
+  Set safelist_urls = empty set. Set `existing_preferences = null`.
   Report: "No safelist found — starting fresh"
+
+**Write preferences back to safelist (atomic):**
+After loading, write the (possibly updated) preferences from intake back into the safelist file using the new object schema:
+
+1. Build the updated safelist object:
+   ```json
+   {
+     "urls": [<all current safelist URL strings>],
+     "preferences": {
+       "mark_criticality": <mark_criticality_input>,
+       "geography": "<geography_input>",
+       "skip_confirmation": <true or false>
+     }
+   }
+   ```
+2. Check for orphaned tmp file: `ls safelist-[sanitized_name].json.tmp 2>/dev/null` — if found, `rm safelist-[sanitized_name].json.tmp`.
+3. Write the object to `safelist-[sanitized_name].json.tmp` using the Write tool.
+4. Run `mv safelist-[sanitized_name].json.tmp safelist-[sanitized_name].json` using the Bash tool.
+
+Do not report this write to the attorney — it is silent housekeeping.
 
 ---
 
@@ -437,8 +484,10 @@ Sanitize the trademark name for filenames (same rule as normal intake). Store as
 **Step SI-2: Load current safelist**
 
 Check whether `safelist-[sanitized_name].json` exists.
-- If yes: read it, parse as JSON array, store as `current_safelist`
-- If no: set `current_safelist = []`
+- If yes: read it, parse as JSON.
+  - If a flat array: set `current_safelist` = that array, `saved_preferences = null`
+  - If an object: set `current_safelist` = the `urls` array (or `[]` if absent), `saved_preferences` = the `preferences` object (or `null` if absent)
+- If no: set `current_safelist = []`, `saved_preferences = null`
 
 **Step SI-3: Parse THREAT? column from Attorney Review Table**
 
@@ -460,11 +509,19 @@ Track:
 
 **Step SI-4: Atomic safelist write**
 
-Merge `current_safelist` + `urls_to_add` into a single array (no duplicates — already filtered in SI-3).
+Merge `current_safelist` + `urls_to_add` into a single deduplicated URL list (already filtered in SI-3).
 
-Check for orphaned tmp file: use the Bash tool to run `ls safelist-[sanitized_name].json.tmp 2>/dev/null`. If it exists, run `rm safelist-[sanitized_name].json.tmp`.
+Build the output object, preserving any saved preferences:
+```json
+{
+  "urls": [<merged URL list>],
+  "preferences": <saved_preferences if not null, otherwise omit the key>
+}
+```
 
-Write the merged array to `safelist-[sanitized_name].json.tmp` using the Write tool.
+Check for orphaned tmp file: `ls safelist-[sanitized_name].json.tmp 2>/dev/null` — if found, `rm safelist-[sanitized_name].json.tmp`.
+
+Write the object to `safelist-[sanitized_name].json.tmp` using the Write tool.
 Then run `mv safelist-[sanitized_name].json.tmp safelist-[sanitized_name].json` using the Bash tool to atomically replace the live file.
 
 **Step SI-5: Report outcome (HND-19)**
