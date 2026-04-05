@@ -6,11 +6,11 @@
 
 Every brand owner faces the same problem: monitoring your trademarks for infringement is tedious and expensive. Traditional monitoring catches exact matches and obvious typos. It misses the phonetic near-misses, the semantic cousins, the compound-suffix clones that erode your brand equity while flying under the radar.
 
-Trademark Hound + Cat close that gap. 
+**Trademark Hound + Cat close that gap.** 
 
-Trademark Cat -  thinks the way an infringer names a product — sound-alikes, concept riffs, suffix swaps to generate intelligent variants that define your threat area you need to search. 
+**Trademark Cat** -  thinks the way an infringer names a product — sound-alikes, concept riffs, suffix swaps to generate intelligent variants that define your threat area you need to search. 
 
-Trademark Hound — then hunts every variant across the open web, scores each find against a weighted threat matrix that is tuned to your products, goods and services, and delivers a prioritized report ready for action.
+**Trademark Hound** — then hunts every variant across the open web, scores each find against a weighted threat matrix that is tuned to your products, goods and services, and delivers a prioritized report ready for action.
 
 **For attorneys:** This is a repeatable, evidence-grounded investigation pipeline. Every threat score cites page content directly. Attorney-supplied values (mark criticality, geography) are locked in and never overridden. The eight-factor matrix maps to the likelihood-of-confusion factors you already use. You review and approve at every gate — nothing fires without your sign-off.
 
