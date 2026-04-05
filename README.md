@@ -56,16 +56,16 @@ Each command hands off a file to the next. You can re-run any stage independentl
 
 ```bash
 # Step 1 — Generate variants
-/trademark-cat Datablox
+/trademark-cat [MARK]
 
 # Step 2 — Search and score
-/trademark-hound Datablox
+/trademark-hound [MARK]
 
 # Step 3 — Generate report
-/trademark-report Datablox
+/trademark-report [MARK]
 ```
 
-All outputs are written to a mark directory created automatically (`datablox/` in this example).
+All outputs are written to a mark directory created automatically.
 
 ---
 
