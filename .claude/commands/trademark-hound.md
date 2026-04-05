@@ -31,6 +31,15 @@ If no second argument (or second argument does not match `HOUND_REPORT_*.md` pat
 
   - Do not proceed until you have BOTH the trademark name AND a goods/services description.
 
+  - Then ask the following two questions (may be asked together in one message):
+
+    > "**Mark criticality:** On a scale of 1–5, how critical is this mark to your business? 1 = not critical, 5 = essential to your business."
+
+    > "**Geography:** What geographies do you currently operate in or consider most important? You can give a simple list (e.g. 'US, Canada, UK') or a tiered list of jurisdictions (e.g. 'Tier 1: US, EU — Tier 2: Canada, Australia')."
+
+  - Store the answers as `mark_criticality_input` (integer 1–5) and `geography_input` (the attorney's text, preserved verbatim).
+  - Do not proceed until both values are provided.
+
 ---
 
 ## Step 1: Check Prerequisites (variants file)
@@ -297,6 +306,19 @@ If both COMMERCIALITY and TRADEMARK USAGE are No: exclude. Log: "Excluded [URL]:
 
 Score using this table. For each factor, cite specific text from the fetched page content. Do not infer — quote or paraphrase directly from the page.
 
+**Mark Criticality and Geography Priority are set by the attorney at intake — do NOT infer or override these values.**
+
+- **Mark Criticality** is derived directly from `mark_criticality_input` (1–5 scale mapped to 0–3):
+  - 1 → 0, 2 → 1, 3 → 2, 4 → 2, 5 → 3
+  The evidence cell for this factor must read: "Attorney-rated [N]/5 — [verbatim description if provided]"
+
+- **Geography Priority** is scored by comparing the lead's apparent operating geography against `geography_input`:
+  - Lead operates in attorney's Tier 1 / primary geography → 3
+  - Lead operates in attorney's Tier 2 / secondary geography → 2
+  - Lead operates in a geography mentioned but not prioritized → 1
+  - Lead operates only in geographies not mentioned by attorney → 0
+  The evidence cell must cite: the lead's geographic indicators from the page AND the attorney's geography input verbatim.
+
 | Factor | Scale | Weight |
 |--------|-------|--------|
 | Mark Criticality | 0–3 | ×3 |
@@ -316,10 +338,10 @@ Variant: [variant name]
 
 | Factor | Score | Weight | Subtotal | Evidence |
 |--------|-------|--------|----------|---------|
-| Mark Criticality | [0-3] | ×3 | [n] | [one sentence from page] |
+| Mark Criticality | [0-3] | ×3 | [n] | Attorney-rated [N]/5 |
 | Similarity | [0-4] | ×3 | [n] | [one sentence from page] |
 | Goods/Services Overlap | [0-3] | ×3 | [n] | [one sentence from page] |
-| Geography Priority | [0-3] | ×2 | [n] | [one sentence from page] |
+| Geography Priority | [0-3] | ×2 | [n] | [lead geography from page] vs. attorney geography: [geography_input] |
 | Confusion Evidence | [0-2] | ×2 | [n] | [one sentence from page] |
 | Rights Posture | [0-2] | ×2 | [n] | [one sentence from page] |
 | Counterparty Profile | [0-2] | ×1 | [n] | [one sentence from page] |
