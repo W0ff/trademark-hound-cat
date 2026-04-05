@@ -1,0 +1,8 @@
+# API key files — never commit
+hound-SERP-*.py
+
+# macOS
+.DS_Store
+
+# Raw SERP lead dumps (large, regenerated each run)
+hound_leads-*.json

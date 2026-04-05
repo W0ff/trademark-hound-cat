@@ -87,10 +87,11 @@ def main():
         if i < total:
             time.sleep(DELAY_SECONDS)
 
-    # Derive output filename from variants file path
+    # Derive output filename from variants file path, preserving directory
+    variants_dir = os.path.dirname(os.path.abspath(VARIANTS_FILE))
     base = os.path.splitext(os.path.basename(VARIANTS_FILE))[0]
     trademark = base.replace("variants-", "")
-    output_file = f"hound_leads-{trademark}.json"
+    output_file = os.path.join(variants_dir, f"hound_leads-{trademark}.json")
 
     with open(output_file, "w", encoding="utf-8") as f:
         json.dump(all_results, f, indent=2, ensure_ascii=False)

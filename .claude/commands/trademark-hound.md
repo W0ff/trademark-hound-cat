@@ -9,75 +9,99 @@ Parse `$ARGUMENTS` to extract:
 1. The trademark name (first token or first quoted string)
 2. The second argument (optional — remaining token after the trademark name)
 
-Sanitize the trademark name for filenames: replace spaces with hyphens, convert to lowercase, remove any characters that are not letters, numbers, or hyphens. Store as `sanitized_name`.
+Sanitize the trademark name for filenames: replace spaces with hyphens, convert to lowercase, remove any characters that are not letters, numbers, or hyphens. Store as `sanitized_name`. This is also the mark directory name.
+
+**Mark directory setup:**
+
+1. Set `mark_dir = sanitized_name` (e.g. `testmark`, `flowstate`)
+2. Use the Bash tool to create the directory if it doesn't exist: `mkdir -p [mark_dir]`
 
 **Second-argument detection (re-invocation branch):**
 
-After extracting the trademark name (first token), check whether a second argument is present and matches the pattern `HOUND_REPORT_*.md` (the filename starts with `HOUND_REPORT_` and ends with `.md`), OR the second token is a path to an existing file with that naming pattern.
+After extracting the trademark name, check whether a second argument is present and matches the pattern `HOUND_REPORT_*.md` (starts with `HOUND_REPORT_` and ends with `.md`), OR is a path to an existing file with that naming pattern. The path may be inside the mark directory (e.g. `[mark_dir]/HOUND_REPORT_*.md`) or an absolute path.
 
 If a second argument matching this pattern is detected:
   - Store the report path as `reviewed_report_path`
   - Set `mode = 'safelist_ingestion'`
-  - Do NOT ask for goods/services description
   - Skip directly to the **Safelist Ingestion** section below
   - Do NOT run SERP search, content triage, or scoring
 
-If no second argument (or second argument does not match `HOUND_REPORT_*.md` pattern):
+If no second argument (or it does not match `HOUND_REPORT_*.md`):
   - Set `mode = 'investigate'`
-  - Continue with normal intake below
-  - Ask for goods/services if not provided:
 
-    > "What goods or services does [TRADEMARK] cover? For example: 'software for project management' or 'retail clothing stores'."
+**Context file check (`[mark_dir]/context-[sanitized_name].md`):**
 
-  - Do not proceed until you have BOTH the trademark name AND a goods/services description.
+Use the Read tool to check whether `[mark_dir]/context-[sanitized_name].md` exists.
 
-  - Before asking the questions below, peek the safelist for saved preferences:
-    Use the Read tool to check whether `safelist-[sanitized_name].json` exists. If it does, parse it.
-    - If the file is a JSON object with a `preferences` key, extract `saved_criticality`, `saved_geography`, and `skip_confirmation` from `preferences`.
-    - If the file is a flat JSON array (old format) or has no `preferences` key, treat saved preferences as absent.
+**If it exists:** Read it and extract:
+- `goods_services` from the `## Goods & Services` section
+- `mark_criticality_input` (integer 0–3) from the `## Mark Criticality` section
+- `geography_input` (verbatim text) from the `## Geography` section
+- `skip_confirmation` (true/false) from the `## Skip Confirmation` section
 
-  - **If saved preferences exist AND `skip_confirmation` is true:**
-    Use the saved values silently. Set `mark_criticality_input = saved_criticality` and `geography_input = saved_geography`.
-    Report: "Using saved preferences — Mark criticality: [N]/3 | Geography: [saved_geography]"
-    Do NOT ask the questions below.
+  - If all three fields (goods_services, mark_criticality_input, geography_input) are present and not "(not provided)": use them silently.
+    Report: "Context loaded: [mark_dir]/context-[sanitized_name].md | Criticality: [N]/3 | Geography: [geography_input]"
 
-  - **If saved preferences exist AND `skip_confirmation` is false (or absent):**
-    Show the saved values and ask for confirmation in one message:
-    > "Saved preferences for [TRADEMARK]:
-    > - **Mark criticality:** [saved_criticality]/3
-    > - **Geography:** [saved_geography]
+  - If `skip_confirmation` is `false` for an existing context file: show saved values and ask to confirm in one message:
+    > "Saved context for **[TRADEMARK]**:
+    > - **Goods & Services:** [goods_services]
+    > - **Mark criticality:** [mark_criticality_input]/3
+    > - **Geography:** [geography_input]
     >
-    > Are these still correct? Reply **'yes'** to confirm, or provide updated values.
-    > To stop being asked this in future, reply **'yes, don't ask again'**."
+    > Are these still correct? Reply **'yes'** to confirm, reply **'yes, don't ask again'** to confirm and stop future prompts, or provide updated values."
+    - "yes" → use saved values
+    - "yes, don't ask again" → use saved values, update `## Skip Confirmation` to `true` in the context file
+    - Updated values → update `mark_criticality_input` and/or `geography_input`, write updated context file
 
-    - If attorney replies "yes" or "yes, don't ask again": use saved values, set `mark_criticality_input = saved_criticality` and `geography_input = saved_geography`. If "don't ask again", set `skip_confirmation = true` for the preferences write below.
-    - If attorney provides new values: update `mark_criticality_input` and `geography_input` accordingly. Reset `skip_confirmation = false`.
+  - If any required field is missing or "(not provided)": ask only for the missing field(s) in one message, then update the context file.
 
-  - **If no saved preferences exist:**
-    Ask the following two questions together in one message:
+**If context file does not exist:** Ask for all fields in a single message:
 
-    > "**Mark criticality:** On a scale of 0–3, how critical is this mark to your business? 0 = not critical, 1 = moderately important, 2 = important, 3 = essential to your business."
+> "Setting up mark context for **[TRADEMARK]**. Please provide:
+>
+> 1. **Goods & Services** (required): What goods or services does this mark cover? e.g. 'software for testing'
+> 2. **Company Products** (optional): Any additional product/company context? (or 'skip')
+> 3. **Mark Criticality** (0–3): 0 = not critical, 1 = moderately important, 2 = important, 3 = essential
+> 4. **Geography**: Geographies you operate in or consider most important — e.g. 'US, Canada, UK' or 'Tier 1: US, EU — Tier 2: Canada, Australia' (or 'skip')"
 
-    > "**Geography:** What geographies do you currently operate in or consider most important? You can give a simple list (e.g. 'US, Canada, UK') or a tiered list of jurisdictions (e.g. 'Tier 1: US, EU — Tier 2: Canada, Australia')."
+Do not proceed until at minimum Goods & Services is provided. Write the context file atomically to `[mark_dir]/context-[sanitized_name].md`:
 
-    Set `skip_confirmation = false`.
+```markdown
+# [TRADEMARK] — Mark Context
 
-  - Store the final answers as `mark_criticality_input` (integer 0–3) and `geography_input` (the attorney's text, preserved verbatim).
-  - Do not proceed until both values are provided.
+## Goods & Services
+[goods_services]
+
+## Company Products
+[company_products or "(not provided)"]
+
+## Mark Criticality
+[mark_criticality_input or "(not provided)"]
+
+## Geography
+[geography_input or "(not provided)"]
+
+## Skip Confirmation
+false
+```
+
+Report: "Context file created: [mark_dir]/context-[sanitized_name].md"
+
+**Set `protected_mark_context`** = the Goods & Services value. This is the baseline for all market overlap assessments.
+
+Do not proceed until `protected_mark_context`, `mark_criticality_input`, and `geography_input` are all set.
 
 ---
 
 ## Step 1: Check Prerequisites (variants file)
 
-Use the Read tool to check whether `variants-[sanitized_name].txt` exists in the current directory.
+Use the Read tool to check whether `[mark_dir]/variants-[sanitized_name].txt` exists.
 
 If the file does NOT exist, output exactly:
 > "No variants file found for [TRADEMARK]. Please run `/trademark-cat [TRADEMARK]` first to generate the variants list."
 Then stop. Do not proceed.
 
-If it exists, read it and extract:
-- The `# Context:` line (first line starting with "# Context:"): store the goods/services description as `protected_mark_context` (everything after "# Context: "). If no Context line is found, use the goods/services description provided at intake.
-- The variant names: for each non-empty line, skip lines starting with "#", then strip inline annotation (everything from " #" onward). Collect the clean variant names.
+If it exists, read it and extract the variant names: for each non-empty line, skip lines starting with "#", then strip inline annotation (everything from " #" onward). Collect the clean variant names.
 
 Report: "Variants loaded: [N] variants for [TRADEMARK] | Context: [protected_mark_context]"
 
@@ -85,79 +109,57 @@ Report: "Variants loaded: [N] variants for [TRADEMARK] | Context: [protected_mar
 
 ## Step 2: Load Safelist
 
-Check whether `safelist-[sanitized_name].json` exists.
+Check whether `[mark_dir]/safelist-[sanitized_name].json` exists.
 
 If it does:
-  Read the file. Parse as JSON.
-  - If the parsed value is a JSON **array**: treat it as the URL list (old format). Set `safelist_urls` from the array. Set `existing_preferences = null`.
-  - If the parsed value is a JSON **object**: extract `urls` (array) as the URL list, and `preferences` (object) as `existing_preferences`. If either key is missing, treat it as empty.
-  Store as a set: safelist_urls = set of all URL strings in the URL list.
+  Read the file. Parse as JSON array of URL strings.
+  Store as a set: safelist_urls = set of all URL strings.
   Report: "Safelist loaded: [N] entries"
 
 If it does not exist:
-  Set safelist_urls = empty set. Set `existing_preferences = null`.
+  Set safelist_urls = empty set.
   Report: "No safelist found — starting fresh"
-
-**Write preferences back to safelist (atomic):**
-After loading, write the (possibly updated) preferences from intake back into the safelist file using the new object schema:
-
-1. Build the updated safelist object:
-   ```json
-   {
-     "urls": [<all current safelist URL strings>],
-     "preferences": {
-       "mark_criticality": <mark_criticality_input>,
-       "geography": "<geography_input>",
-       "skip_confirmation": <true or false>
-     }
-   }
-   ```
-2. Check for orphaned tmp file: `ls safelist-[sanitized_name].json.tmp 2>/dev/null` — if found, `rm safelist-[sanitized_name].json.tmp`.
-3. Write the object to `safelist-[sanitized_name].json.tmp` using the Write tool.
-4. Run `mv safelist-[sanitized_name].json.tmp safelist-[sanitized_name].json` using the Bash tool.
-
-Do not report this write to the attorney — it is silent housekeeping.
 
 ---
 
 ## Step 3: Generate or Reuse SERP Script
 
-Check whether `hound-SERP-[sanitized_name].py` exists.
+Check whether `[mark_dir]/hound-SERP-[sanitized_name].py` exists.
 
 If it EXISTS:
-  Report: "SERP script found: hound-SERP-[sanitized_name].py — reusing existing script."
+  Report: "SERP script found: [mark_dir]/hound-SERP-[sanitized_name].py — reusing existing script."
   Proceed to Step 4.
 
 If it does NOT exist:
   Ask the attorney:
-  > "What is your Serper.dev API key? (It will be written to hound-SERP-[sanitized_name].py and should not be committed to git.)"
+  > "What is your Serper.dev API key? (It will be written to [mark_dir]/hound-SERP-[sanitized_name].py and should not be committed to git.)"
   Wait for the key. Do not proceed until it is provided.
 
   Read the file `hound_leads_template.py` from the project root using the Read tool.
   Replace the literal string `[INSERT API KEY]` with the attorney's API key.
-  Replace the literal string `[INSERT VARIANTS FILE]` with `variants-[sanitized_name].txt`.
-  Write the result to `hound-SERP-[sanitized_name].py` using the Write tool.
+  Replace the literal string `[INSERT VARIANTS FILE]` with `[mark_dir]/variants-[sanitized_name].txt`.
+  Write the result to `[mark_dir]/hound-SERP-[sanitized_name].py` using the Write tool.
 
   Do NOT display the generated script content in your response.
-  Report: "SERP script generated: hound-SERP-[sanitized_name].py"
-  Note to attorney: "Note: hound-SERP-[sanitized_name].py contains your API key — do not commit it to git."
+  Report: "SERP script generated: [mark_dir]/hound-SERP-[sanitized_name].py"
+  Note to attorney: "Note: [mark_dir]/hound-SERP-[sanitized_name].py contains your API key — do not commit it to git."
 
 ---
 
 ## Step 4: Run SERP Search
 
 Execute using the Bash tool:
-  python3 hound-SERP-[sanitized_name].py
+  python3 [mark_dir]/hound-SERP-[sanitized_name].py
 
 This script will print progress as it runs: "[1/N] Searching: [variant]" for each variant.
 With ~100 variants and 0.5s delay, expect approximately 50–60 seconds of runtime.
-When complete, the script reports how many results were written to `hound_leads-[sanitized_name].json`.
+When complete, the script reports how many results were written to `[mark_dir]/hound_leads-[sanitized_name].json`.
 
 If the script exits with a non-zero exit code or "ERROR" appears in output:
   Report the error message to the attorney and stop.
   Common causes: invalid API key, network timeout, variants file not found.
 
-After successful completion, read `hound_leads-[sanitized_name].json`.
+After successful completion, read `[mark_dir]/hound_leads-[sanitized_name].json`.
 Report: "SERP search complete. [N] raw leads found across [M] variants."
 
 ---
@@ -384,7 +386,7 @@ Variant: [variant name]
 
 | Factor | Score | Weight | Subtotal | Evidence |
 |--------|-------|--------|----------|---------|
-| Mark Criticality | [0-3] | ×3 | [n] | Attorney-rated [N]/5 |
+| Mark Criticality | [0-3] | ×3 | [n] | Attorney-rated [N]/3 |
 | Similarity | [0-4] | ×3 | [n] | [one sentence from page] |
 | Goods/Services Overlap | [0-3] | ×3 | [n] | [one sentence from page] |
 | Geography Priority | [0-3] | ×2 | [n] | [lead geography from page] vs. attorney geography: [geography_input] |
@@ -403,11 +405,11 @@ Variant: [variant name]
 
 **After scoring each lead:**
 - If Low (< 10): log "Dropped [URL]: Low risk (score [N])" — do not include in output file
-- If Medium or High: write the lead immediately to `hound_scored-[sanitized_name].json` (append to array)
+- If Medium or High: write the lead immediately to `[mark_dir]/hound_scored-[sanitized_name].json` (append to array)
 - After writing, release the fetched page content from your working memory before processing the next lead
 
 **Writing hound_scored-[TRADEMARK].json:**
-Accumulate Medium and High leads. After all leads are processed, write the complete array to `hound_scored-[sanitized_name].json` using the Write tool.
+Accumulate Medium and High leads. After all leads are processed, write the complete array to `[mark_dir]/hound_scored-[sanitized_name].json` using the Write tool.
 
 Each entry must follow this JSON structure:
 ```json
@@ -434,9 +436,9 @@ Each entry must follow this JSON structure:
 
 Report after all leads are processed:
 > "[N] leads scored — High: [X], Medium: [Y], Low: [Z] (dropped)
-> Scored leads written to: hound_scored-[sanitized_name].json"
+> Scored leads written to: [mark_dir]/hound_scored-[sanitized_name].json"
 
-After writing hound_scored-[sanitized_name].json, display the following run summary block in the conversation:
+After writing [mark_dir]/hound_scored-[sanitized_name].json, display the following run summary block in the conversation:
 
 ```
 === Trademark Hound Run Summary ===
@@ -463,7 +465,7 @@ This completes the Trademark Hound investigation phase. Run `/trademark-hound` a
 
 ---
 
-CRITICAL: Do NOT write any report file in this command. Report generation (HOUND_REPORT_[TRADEMARK]_[DATE].md) is handled separately. This command's terminal output is hound_scored-[sanitized_name].json.
+CRITICAL: Do NOT write any report file in this command. Report generation (HOUND_REPORT_[TRADEMARK]_[DATE].md) is handled separately. This command's terminal output is [mark_dir]/hound_scored-[sanitized_name].json.
 
 ---
 
@@ -483,11 +485,9 @@ Sanitize the trademark name for filenames (same rule as normal intake). Store as
 
 **Step SI-2: Load current safelist**
 
-Check whether `safelist-[sanitized_name].json` exists.
-- If yes: read it, parse as JSON.
-  - If a flat array: set `current_safelist` = that array, `saved_preferences = null`
-  - If an object: set `current_safelist` = the `urls` array (or `[]` if absent), `saved_preferences` = the `preferences` object (or `null` if absent)
-- If no: set `current_safelist = []`, `saved_preferences = null`
+Check whether `[mark_dir]/safelist-[sanitized_name].json` exists.
+- If yes: read it, parse as a flat JSON array of URL strings. Set `current_safelist` = that array.
+- If no: set `current_safelist = []`
 
 **Step SI-3: Parse THREAT? column from Attorney Review Table**
 
@@ -509,20 +509,12 @@ Track:
 
 **Step SI-4: Atomic safelist write**
 
-Merge `current_safelist` + `urls_to_add` into a single deduplicated URL list (already filtered in SI-3).
+Merge `current_safelist` + `urls_to_add` into a single deduplicated flat array of URL strings (already filtered in SI-3).
 
-Build the output object, preserving any saved preferences:
-```json
-{
-  "urls": [<merged URL list>],
-  "preferences": <saved_preferences if not null, otherwise omit the key>
-}
-```
+Check for orphaned tmp file: `ls [mark_dir]/safelist-[sanitized_name].json.tmp 2>/dev/null` — if found, `rm [mark_dir]/safelist-[sanitized_name].json.tmp`.
 
-Check for orphaned tmp file: `ls safelist-[sanitized_name].json.tmp 2>/dev/null` — if found, `rm safelist-[sanitized_name].json.tmp`.
-
-Write the object to `safelist-[sanitized_name].json.tmp` using the Write tool.
-Then run `mv safelist-[sanitized_name].json.tmp safelist-[sanitized_name].json` using the Bash tool to atomically replace the live file.
+Write the flat array to `[mark_dir]/safelist-[sanitized_name].json.tmp` using the Write tool.
+Then run `mv [mark_dir]/safelist-[sanitized_name].json.tmp [mark_dir]/safelist-[sanitized_name].json` using the Bash tool to atomically replace the live file.
 
 **Step SI-5: Report outcome (HND-19)**
 
@@ -536,5 +528,5 @@ Output:
 >   Entries marked YES (retained):          [count_yes]
 >   Entries blank / not yet reviewed:       [count_blank]
 >
->   safelist-[sanitized_name].json now contains [len(merged)] total entries.
+>   [mark_dir]/safelist-[sanitized_name].json now contains [len(merged)] total entries.
 >   These URLs will be excluded from all future /trademark-hound runs."

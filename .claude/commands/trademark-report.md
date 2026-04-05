@@ -10,7 +10,9 @@ Parse `$ARGUMENTS` to extract the trademark name (first token or first quoted st
 If `$ARGUMENTS` is empty, ask:
 > "Which trademark should I report on? (e.g. `testmark`)"
 
-Sanitize the trademark name for filenames: replace spaces with hyphens, convert to lowercase, remove any characters that are not letters, numbers, or hyphens. Store as `sanitized_name`.
+Sanitize the trademark name for filenames: replace spaces with hyphens, convert to lowercase, remove any characters that are not letters, numbers, or hyphens. Store as `sanitized_name`. This is also the mark directory name.
+
+Set `mark_dir = sanitized_name`.
 
 Set `report_date` to today's date in YYYY-MM-DD format.
 
@@ -22,14 +24,14 @@ Ask the attorney:
 Wait for the response. Accept any of: `markdown`, `md`, `csv`, `spreadsheet`, `excel`. Store as `output_format`.
 
 Set `report_filename` to:
-- If markdown: `HOUND_REPORT_[UPPERCASE TRADEMARK]_[report_date].md`
-- If csv: `HOUND_REPORT_[UPPERCASE TRADEMARK]_[report_date].csv`
+- If markdown: `[mark_dir]/HOUND_REPORT_[UPPERCASE TRADEMARK]_[report_date].md`
+- If csv: `[mark_dir]/HOUND_REPORT_[UPPERCASE TRADEMARK]_[report_date].csv`
 
 ---
 
 ## Step 1: Load Scored Leads
 
-Check whether `hound_scored-[sanitized_name].json` exists.
+Check whether `[mark_dir]/hound_scored-[sanitized_name].json` exists.
 
 If it does NOT exist, output:
 > "No scored leads file found for [TRADEMARK]. Please run `/trademark-hound [TRADEMARK]` first."
@@ -37,7 +39,7 @@ Then stop.
 
 Read and parse the file. Store leads as `scored_leads`.
 
-Also read `variants-[sanitized_name].txt` if it exists — extract the `# Context:` line and store as `protected_mark_context`. If not found, use "[goods/services not specified]".
+Also read `[mark_dir]/variants-[sanitized_name].txt` if it exists — extract the `# Context:` line and store as `protected_mark_context`. If not found, use "[goods/services not specified]".
 
 Report:
 > "Loaded [N] scored leads for [TRADEMARK] | Context: [protected_mark_context]"
@@ -211,7 +213,7 @@ Then proceed to Step 4.
 
 After the report is written, present this prompt to the attorney:
 
-> "Review the scored leads above. To dismiss any leads from future scans (add to safelist), list their numbers or entity names (e.g. '4, 7' or 'Synopsys, CheckMark'). These will be added to `safelist-[sanitized_name].json`.
+> "Review the scored leads above. To dismiss any leads from future scans (add to safelist), list their numbers or entity names (e.g. '4, 7' or 'Synopsys, CheckMark'). These will be added to `[mark_dir]/safelist-[sanitized_name].json`.
 >
 > Reply **'done'** to finish without adding to safelist, or list the leads to dismiss."
 
@@ -228,15 +230,15 @@ Wait for the attorney's reply.
   - Add its `url` to the safelist
   - Log: "Added to safelist: [entity_name] — [url]"
 
-  Read the current `safelist-[sanitized_name].json` (or start with empty array if not found).
+  Read the current `[mark_dir]/safelist-[sanitized_name].json` (or start with empty array if not found).
   Merge new URLs (no duplicates).
-  Before writing, check whether `safelist-[sanitized_name].json.tmp` exists using the Bash tool (`ls safelist-[sanitized_name].json.tmp 2>/dev/null`). If it exists, remove it first (`rm safelist-[sanitized_name].json.tmp`). Then write the merged safelist array to `safelist-[sanitized_name].json.tmp` using the Write tool. Then run `mv safelist-[sanitized_name].json.tmp safelist-[sanitized_name].json` using the Bash tool to atomically replace the live file.
+  Before writing, check whether `[mark_dir]/safelist-[sanitized_name].json.tmp` exists using the Bash tool (`ls [mark_dir]/safelist-[sanitized_name].json.tmp 2>/dev/null`). If it exists, remove it first (`rm [mark_dir]/safelist-[sanitized_name].json.tmp`). Then write the merged safelist array to `[mark_dir]/safelist-[sanitized_name].json.tmp` using the Write tool. Then run `mv [mark_dir]/safelist-[sanitized_name].json.tmp [mark_dir]/safelist-[sanitized_name].json` using the Bash tool to atomically replace the live file.
 
   Report:
-  > "Safelist updated: [N] URLs added. `safelist-[sanitized_name].json` now contains [M] total entries."
+  > "Safelist updated: [N] URLs added. `[mark_dir]/safelist-[sanitized_name].json` now contains [M] total entries."
 
   Then stop.
 
 ---
 
-CRITICAL: The report filename is `HOUND_REPORT_[UPPERCASE TRADEMARK]_[YYYY-MM-DD].md` or `.csv` depending on format chosen. Do not write a scored JSON file — that is hound's output, not this command's.
+CRITICAL: The report filename is `[mark_dir]/HOUND_REPORT_[UPPERCASE TRADEMARK]_[YYYY-MM-DD].md` or `.csv` depending on format chosen. Do not write a scored JSON file — that is hound's output, not this command's.

@@ -6,21 +6,74 @@ description: Generate ~100 confusion-risk trademark variants for attorney review
 
 Parse `$ARGUMENTS` to extract:
 1. The trademark name (first token or first quoted string)
-2. The goods/services description (second quoted string, or everything after the first token)
+2. The goods/services description (second quoted string, or everything after the first token) — optional if context file exists
 
-If `$ARGUMENTS` is empty or contains only a trademark name with no goods/services description, ask:
+Sanitize the trademark name for use in filenames: replace spaces with hyphens, convert to lowercase, remove any characters that are not letters, numbers, or hyphens. Store this as `sanitized_name`. The sanitized name is also the mark directory name. Example: "OMEGA 3" → "omega-3", "Coca-Cola" → "coca-cola".
 
-> "What goods or services does [TRADEMARK] cover? For example: 'software for project management' or 'retail clothing stores'."
+**Mark directory setup:**
 
-Do not proceed until you have BOTH the trademark name AND a goods/services description.
+1. Set `mark_dir = sanitized_name` (e.g. `testmark`, `flowstate`)
+2. Use the Bash tool to create the directory if it doesn't exist:
+   `mkdir -p [mark_dir]`
+3. Report: "Mark directory: [mark_dir]/"
 
-Sanitize the trademark name for use in filenames: replace spaces with hyphens, convert to lowercase, remove any characters that are not letters, numbers, or hyphens. Store this as `sanitized_name` for all file output. Example: "OMEGA 3" → "omega-3", "Coca-Cola" → "coca-cola".
+**Context file check (`[mark_dir]/context-[sanitized_name].md`):**
+
+Use the Read tool to check whether `[mark_dir]/context-[sanitized_name].md` exists.
+
+**If it exists:** Read it. Extract:
+- `goods_services` from the `## Goods & Services` section
+- `company_products` from the `## Company Products` section (may be blank)
+- `mark_criticality` from the `## Mark Criticality` section (integer 0–3)
+- `geography` from the `## Geography` section
+Report: "Context loaded from [mark_dir]/context-[sanitized_name].md"
+Use these values — do NOT ask for goods/services if already in context file.
+
+**If it does not exist:** Ask for the following in a single message (goods/services is required; all others are recommended but the attorney may skip with "skip"):
+
+> "Setting up mark context for **[TRADEMARK]**. Please provide:
+>
+> 1. **Goods & Services** (required): What goods or services does this mark cover? e.g. 'software for project management'
+> 2. **Company Products** (optional): Any additional context about your product or company? (or 'skip')
+> 3. **Mark Criticality** (0–3): How critical is this mark to your business? 0 = not critical, 1 = moderately important, 2 = important, 3 = essential
+> 4. **Geography**: What geographies do you operate in or consider most important? e.g. 'US, Canada, UK' or 'Tier 1: US, EU — Tier 2: Canada, Australia' (or 'skip')"
+
+Do not proceed until at minimum (1) Goods & Services is provided. Store all provided values. For skipped fields, store as empty string.
+
+Write the context file atomically:
+```
+[mark_dir]/context-[sanitized_name].md
+```
+Content:
+```markdown
+# [TRADEMARK] — Mark Context
+
+## Goods & Services
+[goods_services]
+
+## Company Products
+[company_products or "(not provided)"]
+
+## Mark Criticality
+[mark_criticality or "(not provided)"]
+
+## Geography
+[geography or "(not provided)"]
+
+## Skip Confirmation
+false
+```
+Report: "Context file created: [mark_dir]/context-[sanitized_name].md"
+
+**Set `goods_services_description`** to the Goods & Services value for use in variant generation below.
+
+Do not proceed until `goods_services_description` is set.
 
 ---
 
 ## Negative Constraints
 
-From the goods/services description, derive a Negative Constraints (Ignore List): a list of non-competing industries that should be excluded from confusion analysis. For example, for "Delta" in "airlines," exclude dental, plumbing, carpentry, and financial services.
+From `goods_services_description`, derive a Negative Constraints (Ignore List): a list of non-competing industries that should be excluded from confusion analysis. For example, for "Delta" in "airlines," exclude dental, plumbing, carpentry, and financial services.
 
 State these constraints clearly to yourself — do not present them to the attorney — before generating variants. Use them to filter out irrelevant semantic synonyms and conceptual variants that would not cause consumer confusion in the relevant market.
 
@@ -120,7 +173,7 @@ Do NOT write the file until approval is explicit. Repeat this loop until explici
 
 After explicit attorney approval, construct the variants file content as follows.
 
-**Line 1:** `# Context: [goods/services description exactly as given by attorney]`
+**Line 1:** `# Context: [goods_services_description exactly as provided]`
 
 Then for each category, write:
 ```
@@ -140,10 +193,10 @@ AcmeTech  # compound: generic tech suffix; common in software branding
 AcmePro  # compound: professional tier suffix; strong association with B2B software
 ```
 
-Write the file to the current working directory as: `variants-[sanitized_name].txt`
+Write the file to: `[mark_dir]/variants-[sanitized_name].txt`
 
 Use the Write tool to create the file. After the Write tool confirms success, output exactly:
 
-> "Variants file written to: variants-[sanitized_name].txt ([N] variants across 5 categories)"
+> "Variants file written to: [mark_dir]/variants-[sanitized_name].txt ([N] variants across 5 categories)"
 
 Do not write the file before explicit approval. Do not write the file more than once per invocation.
