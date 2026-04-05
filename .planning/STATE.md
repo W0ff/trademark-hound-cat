@@ -1,81 +1,49 @@
 ---
 gsd_state_version: 1.0
 milestone: v1.0
-milestone_name: milestone
+milestone_name: MVP
 status: completed
-stopped_at: Completed 03-03-PLAN.md — re-invocation branch and Safelist Ingestion (HND-17/18/19)
-last_updated: "2026-04-04T19:48:27.504Z"
+stopped_at: v1.0 MVP shipped — all 3 phases, 10 plans complete
+last_updated: "2026-04-04T00:00:00.000Z"
 progress:
   total_phases: 3
-  completed_phases: 2
+  completed_phases: 3
   total_plans: 10
-  completed_plans: 9
-  percent: 90
+  completed_plans: 10
+  percent: 100
 ---
 
 # Project State
 
 ## Project Reference
 
-See: .planning/PROJECT.md
+See: .planning/PROJECT.md (updated 2026-04-04)
 
 **Core value:** Attorneys can run the full pipeline — from trademark intake to prioritized threat report — with zero manual Google searching, and the system gets smarter over time as false positives are flagged to a safe list.
-**Current focus:** Phase 3 — Reports, Safe List, and Pipeline Validation
+**Current focus:** v1.0 shipped — planning next milestone
 
 ## Current Position
 
-Phase: 3 of 3 in progress
-Plan: 3 of 4 complete (03-03 complete)
-Status: Phase 3 active — 03-03 re-invocation branch and Safelist Ingestion (HND-17/18/19) done, ready for 03-04
+Milestone v1.0 MVP — COMPLETE
 
-Progress: [█████████░] 90%
+All 3 phases, 10 plans shipped and human-verified.
 
-## What Was Built (Phases 1–2)
+## What Was Shipped (v1.0)
 
 | File | Description |
 |------|-------------|
-| `.claude/commands/trademark-cat.md` | Variant generation skill with interactive approval loop |
-| `.claude/commands/trademark-hound.md` | SERP search, content triage, 8-factor scoring skill |
-| `.claude/commands/trademark-report.md` | Report generation — markdown or CSV, with safelist update step |
-| `hound_leads_template.py` | Python SERP script template (Serper.dev, rate-limited) |
-
-## What's Live for testmark (test run)
-
-| File | Status |
-|------|--------|
-| `variants-testmark.txt` | 100 variants, 5 categories |
-| `hound-SERP-testmark.py` | Generated from template (API key from ~/.zshrc) |
-| `hound_leads-testmark.json` | 564 raw leads from last SERP run |
-| `hound_scored-testmark.json` | 9 scored leads (High/Medium only) |
-| `safelist-testmark.json` | 12 entries (8 excluded leads + MTS TestSuite) |
+| `.claude/commands/trademark-cat.md` | Variant generation skill with interactive approval loop, per-mark directory setup, context file creation |
+| `.claude/commands/trademark-hound.md` | SERP search, domain triage, batch approval gate, parallel content fetch, 8-factor scoring, re-invocation safelist ingestion |
+| `.claude/commands/trademark-report.md` | Markdown/CSV report with Attorney Review Table, THREAT? column, disclaimer, interactive safelist update |
+| `hound_leads_template.py` | Python SERP script template (Serper.dev, rate-limited, per-mark output path) |
+| `.gitignore` | Excludes hound-SERP-*.py (API keys) and hound_leads-*.json |
 
 ## Accumulated Decisions
 
-- [Pre-build]: Claude Code slash commands as delivery format (no separate install)
-- [Pre-build]: Serper.dev for SERP automation (user has existing script skeleton)
-- [Pre-build]: 8-factor weighted threat matrix over simple 1-10 (legally defensible)
-- [Pre-build]: Safe list as JSON array with exact URL string matching (portable, no infrastructure)
-- [Phase 01]: Python stdlib only — zero external dependencies for SERP template
-- [Phase 01]: Inline confusion-axis annotations withheld during review loop, written only after approval
-- [Phase 02]: Stage 1.5 batch URL approval gate before any WebFetch — attorney sees all URLs upfront, approves or skips numbered entries in one reply
-- [Phase 02]: Parallel agent batches for Stage 2 content triage (10 at a time)
-- [Phase 02]: ~120 domain exclusion list in Stage 1 triage (expanded from original 14)
-- [Phase 02]: `allowed_tools` in command frontmatter eliminates per-call permission prompts
-- [Phase 02]: /trademark-report as a separate command (hound writes JSON → report reads it — composable and re-runnable)
-- [Phase 02]: /trademark-report offers markdown (client delivery) or CSV (internal spreadsheet review) at runtime
-- [Phase 03]: test_hnd13_report_filename_pattern passes GREEN (HOUND_REPORT_ already in trademark-report.md) — kept as non-regression guard
-- [Phase 03]: HND-17 re-invocation test requires dedicated labeled section — footer mention excluded by design
-- [Phase 03]: Re-invocation section added to trademark-hound.md in Plan 02 — HND-18 atomic write test checks hound.md directly; adding full section is forward-compatible with Plan 03
-- [Phase 03]: Re-invocation branch placed in Intake section using mode variable — single intake dispatch point for both modes
-- [Phase 03]: Blank THREAT? guard explicitly enumerates skip values: blank, dash, question mark, any non-YES/NO value
-
-## Blockers / Open Questions
-
-- [Phase 03]: /trademark-report was built early — Phase 3 planning should audit what's already done vs. what remains (safe list update flow, pipeline validation, disclaimer header)
-- [Ops]: Serper.dev QPS cap not formally verified — 0.5s inter-query delay is conservative default
+See PROJECT.md Key Decisions table for full log with outcomes.
 
 ## Session Continuity
 
-Last session: 2026-04-04T19:48:20.731Z
-Stopped at: Completed 03-03-PLAN.md — re-invocation branch and Safelist Ingestion (HND-17/18/19)
-Resume with: `/gsd:plan-phase 3`
+Last session: 2026-04-04
+Stopped at: v1.0 milestone archived
+Resume with: `/gsd:new-milestone` to plan v1.1

@@ -79,9 +79,24 @@ State these constraints clearly to yourself — do not present them to the attor
 
 ---
 
+## Variant Count Confirmation
+
+After deriving negative constraints, ask the attorney:
+
+> "How many variants would you like generated? The default is **100** (approximately 20 per category). You can specify any number — for example, '50' for a lighter search or '150' for broader coverage. Just reply with a number or press Enter / say 'default' to use 100."
+
+Wait for a response. Parse the response:
+- If the attorney replies with a plain integer (e.g. "75", "150"), set `confirmed_variant_count` to that integer.
+- If the attorney replies "default", presses Enter, or gives any non-numeric affirmation (e.g. "100 is fine", "go ahead", "sounds good"), set `confirmed_variant_count` to 100.
+- If the response is ambiguous, ask once: "Just to confirm — how many total variants would you like? (default is 100)"
+
+Store `confirmed_variant_count`. This value drives the Variant Generation section below.
+
+---
+
 ## Variant Generation
 
-Generate ~100 variants across these 5 categories, targeting approximately 20 per category:
+Generate `confirmed_variant_count` variants across these 5 categories, targeting approximately `confirmed_variant_count / 5` per category (round to nearest integer):
 
 **Category 1 — Phonetic & Orthographic**
 Sound-alike spellings, vowel swaps, consonant substitutions, homophones, alternate spellings, and letter transpositions.
@@ -106,7 +121,7 @@ Examples for ACME: Akme-Pro, Akmax, Acmax, Aqume, A.C.M.E., Acmex
 
 ---
 
-After generating all variants, COUNT the variants per category. If any category has fewer than 15 variants, generate additional variants for that category before proceeding. Do not present the list until all 5 categories have at least 15 variants.
+After generating all variants, COUNT the variants per category. If any category has fewer than `floor(confirmed_variant_count / 5 * 0.75)` variants, generate additional variants for that category before proceeding. (For the default of 100, this threshold is 15.) Do not present the list until all 5 categories meet this minimum.
 
 **Variant name rules:**
 - Variant names MUST NOT contain the `#` character
@@ -129,6 +144,7 @@ Present the variants using EXACTLY this format:
 ```
 ---
 Total: [N] variants | Phonetic: [X] | Compound: [Y] | Semantic: [Z] | Conceptual: [W] | Hybrid: [V]
+(N should equal confirmed_variant_count)
 
 # Phonetic & Orthographic ([X])
 [variant 1]
